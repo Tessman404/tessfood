@@ -151,7 +151,7 @@ def announce(text):
     if not ent or not ha_ok():
         return
     try:
-        if ent.startswith("media_player.") and "echo" in ent or "alexa" in ent:
+        if ent.startswith("media_player.") and ("echo" in ent or "alexa" in ent):
             ha("POST", "/api/services/notify/alexa_media", {"message": text, "target": [ent], "data": {"type": "tts"}}, timeout=5)
         else:
             ha("POST", "/api/services/tts/speak", {"entity_id": "tts.home_assistant_cloud", "media_player_entity_id": ent,
