@@ -567,7 +567,7 @@ def shopping_view(d):
     items = [i for i in d["shopping"] if not i.get("done")]
     out = []
     for i in items:
-        p = d["products"].get(i.get("product_id") or "", {})
+        p = d["products"].get(i.get("product_id") or "") or product_by_name(d, i["name"]) or {}
         q = p.get("drive_name") or i["name"]
         out.append(dict(i, image=p.get("image", ""), stock=stock_qty(d, p["id"]) if p else None,
                         drive_url=p.get("drive_url") or "https://www.intermarche.com/recherche/" + urllib.parse.quote(q)))
@@ -682,6 +682,27 @@ def push_sensors():
 
 
 # ---------------------------------------------------------------- tâches de fond
+def fill_images(limit=8):
+    """Ajoute les photos manquantes (Open Food Facts), quelques produits à la fois."""
+    with LOCK:
+        d = load_db()
+        todo = [(p["id"], p["barcodes"][0]) for p in d["products"].values()
+                if not p.get("image") and p.get("barcodes") and not p.get("img_tried")][:limit]
+    for pid, code in todo:
+        info = off_lookup(code) if len(code) >= 8 and not code.startswith("02") else None
+        with LOCK:
+            d = load_db()
+            p = d["products"].get(pid)
+            if p:
+                p["img_tried"] = True
+                if info and info.get("image"):
+                    p["image"] = info["image"]
+                if p["name"].startswith("Produit inconnu") and info and info.get("name"):
+                    p["name"] = info["name"]
+                save_db(d)
+        time.sleep(1)
+
+
 def scheduler():
     last_expiry, last_check, door_open_since, door_warned, last_alexa, last_sensors = None, None, None, False, 0, 0
     while True:
@@ -729,7 +750,12 @@ def scheduler():
                         announce("Attention, la porte du frigo est restée ouverte")
                 else:
                     door_open_since, door_warned = None, False
-            # 5) capteurs Home Assistant
+            # 5) photos manquantes
+            try:
+                fill_images()
+            except Exception as e:
+                log("photos :", e)
+            # 6) capteurs Home Assistant
             if time.time() - last_sensors > 300:
                 last_sensors = time.time()
                 push_sensors()
