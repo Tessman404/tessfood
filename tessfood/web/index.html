@@ -83,7 +83,18 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .zchips button{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-weight:600;font-size:.9rem;white-space:nowrap}
 .zchips button.on{background:var(--green);color:#fff}
 .zchips small{opacity:.7;font-weight:500}
-.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;align-items:start}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(235px,1fr);gap:12px;align-items:stretch;overflow-x:auto;padding-bottom:4px}
+.board .item .name,.single .item .name{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.2;font-size:.92rem}
+.board .item{display:grid;grid-template-columns:38px 1fr 32px auto 32px;column-gap:6px;row-gap:4px;align-items:center}
+.board .item>img,.board .item>.ph{grid-row:1/3;align-self:start}
+.board .item>.mid{grid-column:2/6;grid-row:1}
+.board .item>.ib:first-of-type{grid-column:3;grid-row:2}
+.board .item>.qty{grid-column:4;grid-row:2;min-width:34px}
+.board .item>.ib:last-of-type{grid-column:5;grid-row:2}
+.board .qty small{display:inline;margin-left:2px}
+.board .col{overflow-y:auto;overscroll-behavior:contain;min-height:0}
+.board .col>h2{position:sticky;top:-8px;background:#f8f4ec;z-index:1;margin:0 -10px;padding:10px 14px 6px;border-radius:18px 18px 0 0}
+@media (max-width:700px){.board{grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;height:auto!important}.board .col{overflow:visible}}
 .col{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:18px;padding:8px 10px 12px}
 .col>h2{margin:6px 4px 2px}
 .single .list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
@@ -239,6 +250,12 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <div class="row"><button class="btn light" onclick="closeScan()">Fermer</button></div>
 </form></dialog>
 
+<!-- Photo en grand -->
+<dialog id="dZoom" onclick="dZoom.close()" style="background:#fff"><div class="in" style="text-align:center">
+  <img id="zImg" alt="" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:12px">
+  <b id="zName"></b><span class="hist">Touche pour fermer</span>
+</div></dialog>
+
 <!-- Choix à la sortie -->
 <dialog id="dChoice"><form class="in" method="dialog" onsubmit="return false">
   <h3 id="cTitle"></h3>
@@ -329,7 +346,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const nb = x => (Math.round(x * 100) / 100).toString().replace('.', ',');
 let OV = null, PRODUCTS = [], TAB = 'stock', EDIT = null, PROD = null, ORDER = null;
 const ZL = {frigo:'Frigo', congelateur:'Congélateur', placard:'Placards', cellier:'Boissons', maison:'Maison'};
-let ZONE = 'all';
+let ZONE = innerWidth < 700 ? 'frigo' : 'all';
 
 async function api(path, body) {
   const r = await fetch('api/' + path, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
@@ -348,7 +365,13 @@ async function act(fn, msg) { try { await fn(); if (msg) toast(msg, true); await
 function zoneOpts(sel) { for (const s of sel) s.innerHTML = Object.entries(ZL).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''); }
 zoneOpts([$('#aZone'), $('#eZone'), $('#pZone')]);
 
-function thumb(x) { return x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy">` : `<div class="ph">${esc((x.name || '?')[0].toUpperCase())}</div>`; }
+function thumb(x) { return x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy" style="cursor:zoom-in" onclick="zoomImg(event,this.src,${esc(JSON.stringify(x.name || ''))})">` : `<div class="ph">${esc((x.name || '?')[0].toUpperCase())}</div>`; }
+function zoomImg(ev, src, name) {
+  ev.stopPropagation();
+  const big = src.replace(/\.(100|200)\.jpg$/, '.400.jpg');
+  $('#zImg').onerror = () => { $('#zImg').onerror = null; $('#zImg').src = src; };
+  $('#zImg').src = big; $('#zName').textContent = name; dZoom.showModal();
+}
 function dlc(days, opened, est) {
   let t = '';
   const e = est ? '≈ ' : '';
@@ -414,6 +437,8 @@ function groupHtml(items, z) {
     <div class="list">${groups[r].map(x => itemHtml(x, z)).join('')}</div>`).join('');
 }
 function renderStock() {
+  const keep = [...document.querySelectorAll('#zones .col')].map(c => c.scrollTop);
+  setTimeout(() => document.querySelectorAll('#zones .col').forEach((c, i) => { if (keep[i]) c.scrollTop = keep[i]; }), 0);
   const t = $('#q').value.toLowerCase();
   const filt = items => items.filter(x => !t || (x.name + ' ' + x.brand + ' ' + x.rayon).toLowerCase().includes(t));
   const zs = Object.keys(OV.zones);
@@ -422,6 +447,7 @@ function renderStock() {
   for (const b of document.querySelectorAll('#zchips button')) b.onclick = () => { ZONE = b.dataset.z; renderStock(); };
   if (ZONE === 'all') {
     $('#zones').className = 'board';
+    requestAnimationFrame(fitBoard);
     $('#zones').innerHTML = zs.map(z => { const f = filt(OV.zones[z]); if (!f.length && t) return '';
       return `<div class="col"><h2>${ZL[z] || z} <small>${f.length} produit(s)</small></h2>${groupHtml(f, z) || '<div class="empty">Vide</div>'}</div>`; }).join('');
   } else {
@@ -430,6 +456,11 @@ function renderStock() {
     $('#zones').innerHTML = groupHtml(f, ZONE) || '<div class="empty">Rien ici.</div>';
   }
 }
+function fitBoard() {
+  const b = $('#zones'); if (!b.classList.contains('board') || innerWidth < 700) return;
+  b.style.height = Math.max(320, innerHeight - b.getBoundingClientRect().top - 84) + 'px';
+}
+addEventListener('resize', fitBoard);
 $('#q').oninput = renderStock;
 $('#pq').oninput = loadProducts;
 const take = (pid, u) => act(() => api('stock/take', u > 1 ? {product_id: pid, units: 1} : {product_id: pid, qty: 1}), 'Sorti du stock');
