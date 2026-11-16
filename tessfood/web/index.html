@@ -78,6 +78,11 @@ dialog h3{margin:0}
 .hist div{padding:4px 0;border-bottom:1px solid var(--line)}
 code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .hide{display:none!important}
+.sconf{border-radius:14px;padding:14px 16px;font-size:1.1rem;font-weight:700;display:flex;gap:12px;align-items:center;background:#dcfce7;color:#14532d;border:2px solid #22c55e}
+.sconf img{width:56px;height:56px;object-fit:contain;border-radius:10px;background:#fff}
+.sconf small{display:block;font-weight:500;font-size:.92rem;color:#166534}
+.sconf.add{background:#dbeafe;color:#1e3a8a;border-color:#3b82f6}.sconf.add small{color:#1e40af}
+.sconf.warn{background:#fef3c7;color:#78350f;border-color:#f59e0b}.sconf.warn small{color:#92400e}
 #scanned .item{flex-wrap:wrap}
 #scanned .item .mid{flex:1 1 60%}
 #scanned .item .name{white-space:normal}
@@ -288,6 +293,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <h3>Scanner un produit</h3>
   <div class="seg" id="smode"><button data-m="consume" class="on r">Sortir</button><button data-m="add">Ajouter</button><button data-m="open">Ouvert</button><button data-m="waste">Jeté</button></div>
   <div id="reader"></div>
+  <div id="sconf" class="sconf hide"></div>
   <p class="hist" style="margin:0">Passe les produits les uns après les autres devant la caméra (code-barres net, à 15–25 cm, horizontal ou vertical) : chacun est pris en compte tout seul.</p>
   <div id="scanned" class="list"></div>
   <div class="row"><button class="btn light" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
@@ -402,6 +408,8 @@ async function api(path, body) {
 }
 function toast(m, canUndo) {
   const t = $('#toast');
+  const open = document.querySelector('dialog[open]');
+  if (open && t.parentNode !== open) open.appendChild(t); else if (!open && t.parentNode !== document.body) document.body.appendChild(t);
   t.innerHTML = esc(m) + (canUndo ? ' <button onclick="doUndo()">Annuler</button>' : '');
   t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), canUndo ? 8000 : 2600);
 }
@@ -677,7 +685,7 @@ async function decodeCanvas(src, det) {
   return dec(c);
 }
 async function openScan() {
-  dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = ''; SCANNED = []; renderScanned(); BUSY = false;
+  dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = ''; SCANNED = []; renderScanned(); BUSY = false; $('#sconf').className = 'sconf hide';
   const cam = {facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080}, advanced: [{focusMode: 'continuous'}]};
   try {
     let det = null;
@@ -757,12 +765,20 @@ async function doScan(code, amount) {
 let SCANNED = [];
 function addScanned(r, info) {
   BUSY = false;
-  if (!r.ok) { toast('⚠️ ' + r.message); return; }
-  if (!r.product_id) { toast(r.message); return; }  // carte de mode
+  if (!r.ok) { showConf('warn', '⚠️ ' + r.message, '', null); return; }
+  if (!r.product_id) { showConf('add', r.message, '', null); return; }  // carte de mode
+  const V = {consume: 'sorti du stock', add: 'ajouté au stock', open: 'marqué ouvert', waste: 'noté comme jeté'};
+  showConf(r.warning || r.new ? 'warn' : (r.mode === 'add' ? 'add' : ''),
+    `✓ ${r.product} : ${V[r.mode] || r.mode}`,
+    `Il en reste ${r.left_text}${r.warning ? ' · ' + r.warning : ''}${r.new ? ' · nouveau produit, pense à vérifier son nom' : ''}`, info && info.image);
   SCANNED.unshift({id: Date.now(), pid: r.product_id, name: r.product, mode: r.mode, units: r.units || 1, left: r.left_text,
                    img: info && info.image, isNew: r.new, warn: r.warning});
   SCANNED = SCANNED.slice(0, 12);
   renderScanned();
+}
+function showConf(cls, title, sub, img) {
+  const e = $('#sconf'); e.className = 'sconf ' + (cls || '');
+  e.innerHTML = (img ? `<img src="${esc(img)}" alt="">` : '') + `<div>${esc(title)}<small>${esc(sub)}</small></div>`;
 }
 function renderScanned() {
   const V = {consume: 'sorti', add: 'ajouté', open: 'ouvert', waste: 'jeté'};
