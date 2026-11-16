@@ -30,8 +30,8 @@ HA_URL = os.environ.get("HA_URL", "").rstrip("/")
 HA_TOKEN = os.environ.get("HA_TOKEN", "")
 SCAN_TOKEN = os.environ.get("SCAN_TOKEN", "")
 
-ZONES = ["frigo", "congelateur", "placard", "cellier"]
-ZONE_LABEL = {"frigo": "Frigo", "congelateur": "Congélateur", "placard": "Placard", "cellier": "Cellier"}
+ZONES = ["frigo", "congelateur", "placard", "cellier", "maison"]
+ZONE_LABEL = {"frigo": "Frigo", "congelateur": "Congélateur", "placard": "Placard", "cellier": "Cellier / boissons", "maison": "Maison (hygiène, entretien)"}
 
 # Cartes à scanner pour changer d'action (imprimables depuis l'appli)
 MODE_CARDS = {"TF-SORTIE": "consume", "TF-AJOUT": "add", "TF-OUVERT": "open", "TF-JETE": "waste", "TF-ANNULER": "undo"}
@@ -241,8 +241,12 @@ SHELF = [
 def estimate_shelf(name, cats="", zone="placard"):
     if zone == "congelateur":
         return 180, 0
-    t = norm(name) + " " + cats.replace("-", " ")
+    if zone in ("cellier", "maison"):
+        return 0, 0
+    t = " " + norm(name) + " " + cats.replace("-", " ")
     for words, keep, opened in SHELF:
+        if zone != "frigo" and words[0] not in ("pain", "fruit", "lait", "jus"):
+            continue  # au placard, seuls pain, fruits, lait et jus ont une durée courte
         if any(w in t for w in words):
             return keep, opened
     return (10, 4) if zone == "frigo" else (0, 0)
@@ -809,6 +813,23 @@ def api(method, path, q, body):
             d["unknown"] = [u for u in d["unknown"] if u["product_id"] != p["id"] or p["name"].startswith("Produit inconnu")]
             save_db(d)
             return {"ok": True}
+        elif path == "/api/product/import":
+            # import de produits (ex. produits habituels du drive) : fiches seulement, sans toucher au stock
+            n_new = n_upd = 0
+            for x in body.get("items", []):
+                code = re.sub(r"\D", "", str(x.get("ean", "")))
+                p = product_by_code(d, code) if code else None
+                if not p:
+                    p = make_product(d, x.get("name") or code, code or None,
+                                     {"brand": x.get("brand", ""), "quantity": x.get("qty", "")}, x.get("zone"))
+                    n_new += 1
+                else:
+                    n_upd += 1
+                for k in ("drive_name", "drive_url"):
+                    if x.get(k):
+                        p[k] = x[k]
+            save_db(d)
+            return {"ok": True, "new": n_new, "updated": n_upd}
         elif path == "/api/product/merge":
             # un « produit inconnu » scanné est en fait un produit qui existe déjà
             src, dst = d["products"].pop(body["from"]), d["products"][body["into"]]
