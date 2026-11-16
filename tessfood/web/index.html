@@ -18,7 +18,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-ap
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 :focus-visible{outline:3px solid var(--amber);outline-offset:2px}
-.wrap{max-width:900px;margin:0 auto;padding:16px 14px 0}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 14px 0}
 header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 header h1{margin:0;font-size:1.9rem;letter-spacing:-.02em;color:var(--green)}
 header h1 span{color:var(--tomato)}
@@ -29,7 +29,7 @@ header h1 span{color:var(--tomato)}
 .alerts button{padding:8px 12px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);font-size:.9rem;font-weight:600}
 .alerts .r{color:var(--tomato)} .alerts .a{color:#a86a10}
 nav{position:fixed;left:0;right:0;bottom:0;background:var(--green);display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
-nav button{flex:1;max-width:150px;color:#cfe2d8;padding:6px 2px;border-radius:10px;font-size:.78rem;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+nav button{flex:1;max-width:130px;color:#cfe2d8;padding:6px 2px;border-radius:10px;font-size:.78rem;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
 nav button svg{width:22px;height:22px}
 nav button.on{color:#fff;background:rgba(255,255,255,.1)}
 nav .badge{position:absolute;top:2px;right:calc(50% - 22px);background:var(--tomato);color:#fff;border-radius:999px;font-size:.68rem;padding:0 5px;min-width:17px}
@@ -72,11 +72,44 @@ dialog::backdrop{background:rgba(20,30,25,.45)}
 dialog .in{padding:18px;display:grid;gap:12px;overflow:auto;max-height:90vh}
 dialog h3{margin:0}
 .toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:.92rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;max-width:92vw}
-.toast.on{opacity:1}
+.toast.on{opacity:1;pointer-events:auto}
+.toast button{margin-left:10px;background:var(--amber);color:var(--ink);border-radius:8px;padding:4px 10px;font-weight:700}
 .hist{font-size:.85rem;color:var(--ink2)}
 .hist div{padding:4px 0;border-bottom:1px solid var(--line)}
 code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .hide{display:none!important}
+.zchips{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px}
+.zchips button{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-weight:600;font-size:.9rem;white-space:nowrap}
+.zchips button.on{background:var(--green);color:#fff}
+.zchips small{opacity:.7;font-weight:500}
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;align-items:start}
+.col{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:18px;padding:8px 10px 12px}
+.col>h2{margin:6px 4px 2px}
+.single .list{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.rayon{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin:14px 4px 6px;font-weight:700;display:flex;justify-content:space-between}
+.item.compact{padding:6px 8px;gap:8px}
+.item.compact img,.item.compact .ph{width:38px;height:38px}
+.item.compact .ib{width:32px;height:32px}
+.qty small{display:block;font-size:.62rem;color:var(--ink2);font-weight:600;line-height:1}
+.fab{position:fixed;right:16px;bottom:calc(80px + env(safe-area-inset-bottom));background:var(--tomato);color:#fff;border-radius:999px;padding:13px 18px;font-weight:700;box-shadow:0 8px 22px rgba(226,85,58,.4);z-index:6;display:flex;gap:8px;align-items:center}
+.fab svg{width:20px;height:20px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.seg button{padding:9px 4px;border-radius:10px;background:#f1ece1;font-weight:600;font-size:.88rem}
+.seg button.on{background:var(--green);color:#fff}
+.seg button.on.r{background:var(--tomato)}
+#reader{width:100%;border-radius:14px;overflow:hidden;background:#000;min-height:0}
+#reader video{width:100%!important;border-radius:14px}
+.choice{display:grid;gap:8px}
+.choice button{padding:14px;border-radius:12px;background:#f1ece1;font-weight:700;text-align:left}
+.choice button span{display:block;font-weight:500;font-size:.85rem;color:var(--ink2)}
+.choice button.main{background:var(--green);color:#fff}.choice button.main span{color:#cfe2d8}
+.recipe{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:14px;display:grid;gap:8px}
+.recipe h3{margin:0;font-size:1.08rem}
+.recipe .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:var(--ink2)}
+.recipe ul,.recipe ol{margin:0;padding-left:20px}
+.recipe li{margin:3px 0}
+.ing-ok{color:var(--green2)}.ing-no{color:#b13a22}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
 </style>
 </head>
 <body>
@@ -94,7 +127,20 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
       <input id="q" placeholder="Chercher dans le stock…" autocomplete="off">
       <button class="btn" onclick="openAdd()">+ Ajouter</button>
     </div>
+    <div id="zchips" class="zchips"></div>
     <div id="zones"></div>
+  </section>
+
+  <!-- RECETTES -->
+  <section id="t-recipes" class="hide">
+    <div class="box" id="claudeBox">
+      <p><b>Idées de recettes avec ce que tu as.</b> Les recettes qui utilisent des produits à consommer vite passent en premier.</p>
+      <div class="bar"><input id="wish" placeholder="Une envie ? (ex. rapide, sans four, poisson…)"><button class="btn" onclick="genRecipes()">Nouvelles idées</button></div>
+    </div>
+    <div class="zchips" id="rfilters">
+      <button class="on" data-f="all">Toutes</button><button data-f="ok">Tout est là</button><button data-f="urgent">Anti-gaspi</button><button data-f="fast">Rapides</button><button data-f="fav">★ Favorites</button>
+    </div>
+    <div id="recipes" class="rgrid"></div>
   </section>
 
   <!-- COURSES -->
@@ -168,11 +214,40 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 <nav>
   <button data-t="stock" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M5 10h14M9 5v2M9 13v3"/></svg>Stock</button>
   <button data-t="courses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.5 11h11L21 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>Courses<span class="badge hide" id="b-courses"></span></button>
+  <button data-t="recipes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M12 7c0-2 2-2 2-4M16 7c0-2 2-2 2-4"/></svg>Recettes</button>
   <button data-t="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>Vérifier<span class="badge hide" id="b-check"></span></button>
   <button data-t="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Produits</button>
   <button data-t="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg>Réglages</button>
 </nav>
 <datalist id="dl-products"></datalist>
+<button class="fab" onclick="openScan()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 8v8M10 8v8M14 8v8M17 8v8"/></svg>Scanner</button>
+
+<!-- Scanner (caméra) -->
+<dialog id="dScan"><form class="in" method="dialog" onsubmit="return false">
+  <h3>Scanner un produit</h3>
+  <div class="seg" id="smode"><button data-m="consume" class="on r">Sortir</button><button data-m="add">Ajouter</button><button data-m="open">Ouvert</button><button data-m="waste">Jeté</button></div>
+  <div id="reader"></div>
+  <div class="row"><button class="btn light" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
+  <label>Sans code-barres : tape le nom<input id="sq" placeholder="ex. tomates, restes de poulet…" autocomplete="off"></label>
+  <div id="sres" class="list"></div>
+  <div class="row"><button class="btn light" onclick="closeScan()">Fermer</button></div>
+</form></dialog>
+
+<!-- Choix à la sortie -->
+<dialog id="dChoice"><form class="in" method="dialog" onsubmit="return false">
+  <h3 id="cTitle"></h3>
+  <p class="hist" id="cSub"></p>
+  <div class="choice" id="cBtns"></div>
+  <button class="btn light" onclick="dChoice.close()">Annuler</button>
+</form></dialog>
+
+<!-- J'ai cuisiné -->
+<dialog id="dCook"><form class="in" method="dialog" onsubmit="return false">
+  <h3 id="kTitle"></h3>
+  <p class="hist">Coche ce que tu as utilisé et combien (en unités). Tout sera sorti du stock.</p>
+  <div id="kItems" class="list"></div>
+  <div class="row"><button class="btn" onclick="doCook()">Sortir du stock</button><button class="btn light" onclick="dCook.close()">Annuler</button></div>
+</form></dialog>
 
 <!-- Ajouter au stock -->
 <dialog id="dAdd"><form class="in" method="dialog" onsubmit="return false">
@@ -213,7 +288,12 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
     <label>Se garde ouvert (jours)<input id="pOpen" type="number" min="0"></label>
     <label>Se garde après achat (jours)<input id="pKeep" type="number" min="0"></label>
     <label>Ajouter un code-barres<input id="pCode" inputmode="numeric"></label>
+    <label>Unités dans un paquet<input id="pUnits" type="number" min="1" step="1"></label>
+    <label>Au bip du scanner, sortir
+      <select id="pScanOut"><option value="unit">1 unité</option><option value="pack">le paquet entier</option></select></label>
   </div>
+  <label>Rayon<input id="pRayon" list="dl-rayons" placeholder="ex. Fromages"></label>
+  <datalist id="dl-rayons"><option value="Fromages"><option value="Yaourts & desserts"><option value="Lait, beurre, crème & œufs"><option value="Viandes & poissons"><option value="Charcuterie"><option value="Plats préparés"><option value="Fruits & légumes"><option value="Pâtes, riz & féculents"><option value="Sauces & condiments"><option value="Épices & aides"><option value="Petit-déjeuner & sucré"><option value="Pain"><option value="Apéritif & bonbons"><option value="Bières"><option value="Vins & alcools"><option value="Softs & eaux"><option value="Hygiène & entretien"><option value="Divers"></datalist>
   <label>Nom exact sur le drive Intermarché (optionnel)<input id="pDrive" placeholder="ex. Lait demi-écrémé Candia 6x1L"></label>
   <label>Lien du produit sur le drive (optionnel)<input id="pUrl" placeholder="https://www.intermarche.com/produit/…"></label>
   <label id="pMergeL">C'est en fait…<select id="pMerge"><option value="">— garder comme produit à part —</option></select></label>
@@ -240,7 +320,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nb = x => (Math.round(x * 100) / 100).toString().replace('.', ',');
 let OV = null, PRODUCTS = [], TAB = 'stock', EDIT = null, PROD = null, ORDER = null;
-const ZL = {frigo:'Frigo', congelateur:'Congélateur', placard:'Placard', cellier:'Boissons', maison:'Maison'};
+const ZL = {frigo:'Frigo', congelateur:'Congélateur', placard:'Placards', cellier:'Boissons', maison:'Maison'};
+let ZONE = 'all';
 
 async function api(path, body) {
   const r = await fetch('api/' + path, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
@@ -248,8 +329,13 @@ async function api(path, body) {
   if (!r.ok) throw new Error(j.message || ('erreur ' + r.status));
   return j;
 }
-function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2600); }
-async function act(fn, msg) { try { await fn(); if (msg) toast(msg); await load(); } catch (e) { toast('⚠️ ' + e.message); } }
+function toast(m, canUndo) {
+  const t = $('#toast');
+  t.innerHTML = esc(m) + (canUndo ? ' <button onclick="doUndo()">Annuler</button>' : '');
+  t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), canUndo ? 8000 : 2600);
+}
+async function doUndo() { try { const r = await api('undo', {}); toast(r.message); await load(); if (TAB === 'recipes') loadRecipes(); if (TAB === 'products') loadProducts(); } catch (e) { toast('⚠️ ' + e.message); } }
+async function act(fn, msg) { try { await fn(); if (msg) toast(msg, true); await load(); } catch (e) { toast('⚠️ ' + e.message); } }
 
 function zoneOpts(sel) { for (const s of sel) s.innerHTML = Object.entries(ZL).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''); }
 zoneOpts([$('#aZone'), $('#eZone'), $('#pZone')]);
@@ -301,28 +387,45 @@ async function loadProducts() {
 }
 
 // ------------------------------------------------ stock
-function renderStock() {
-  const t = $('#q').value.toLowerCase();
-  let h = '';
-  for (const [z, items] of Object.entries(OV.zones)) {
-    const f = items.filter(x => !t || (x.name + ' ' + x.brand).toLowerCase().includes(t));
-    if (!f.length && t) continue;
-    h += `<h2>${ZL[z] || z} <small>${f.length} produit(s)</small></h2><div class="list">`;
-    h += f.map(x => `<div class="item">${thumb(x)}
+function qtyHtml(x) {
+  if (x.units > 1) return `${nb(x.units_left)}<small>/${x.units}</small>`;
+  return nb(x.qty);
+}
+function itemHtml(x, z) {
+  return `<div class="item compact">${thumb(x)}
       <div class="mid" onclick="openEdit('${x.stock_id}')"><div class="name">${esc(x.name)}</div>
       <div class="sub">${esc(x.brand || '')} ${dlc(x.days, x.opened, x.est)}</div></div>
-      <button class="ib" title="En sortir un" onclick="take('${x.product_id}')">−</button>
-      <div class="qty">${nb(x.qty)}</div>
-      <button class="ib" title="En ajouter un" onclick="plus('${x.product_id}','${z}')">+</button></div>`).join('')
-      || '<div class="empty">Vide</div>';
-    h += '</div>';
+      <button class="ib" title="En sortir un" onclick="take('${x.product_id}',${x.units})">−</button>
+      <div class="qty">${qtyHtml(x)}</div>
+      <button class="ib" title="En ajouter un" onclick="plus('${x.product_id}','${z}',${x.units})">+</button></div>`;
+}
+function groupHtml(items, z) {
+  const groups = {};
+  for (const x of items) (groups[x.rayon] = groups[x.rayon] || []).push(x);
+  return Object.keys(groups).sort().map(r => `<div class="rayon"><span>${esc(r)}</span><span>${groups[r].length}</span></div>
+    <div class="list">${groups[r].map(x => itemHtml(x, z)).join('')}</div>`).join('');
+}
+function renderStock() {
+  const t = $('#q').value.toLowerCase();
+  const filt = items => items.filter(x => !t || (x.name + ' ' + x.brand + ' ' + x.rayon).toLowerCase().includes(t));
+  const zs = Object.keys(OV.zones);
+  $('#zchips').innerHTML = `<button data-z="all" class="${ZONE === 'all' ? 'on' : ''}">Tout <small>${zs.reduce((a, z) => a + OV.zones[z].length, 0)}</small></button>` +
+    zs.map(z => `<button data-z="${z}" class="${ZONE === z ? 'on' : ''}">${ZL[z] || z} <small>${OV.zones[z].length}</small></button>`).join('');
+  for (const b of document.querySelectorAll('#zchips button')) b.onclick = () => { ZONE = b.dataset.z; renderStock(); };
+  if (ZONE === 'all') {
+    $('#zones').className = 'board';
+    $('#zones').innerHTML = zs.map(z => { const f = filt(OV.zones[z]); if (!f.length && t) return '';
+      return `<div class="col"><h2>${ZL[z] || z} <small>${f.length} produit(s)</small></h2>${groupHtml(f, z) || '<div class="empty">Vide</div>'}</div>`; }).join('');
+  } else {
+    const f = filt(OV.zones[ZONE] || []);
+    $('#zones').className = 'single';
+    $('#zones').innerHTML = groupHtml(f, ZONE) || '<div class="empty">Rien ici.</div>';
   }
-  $('#zones').innerHTML = h;
 }
 $('#q').oninput = renderStock;
 $('#pq').oninput = loadProducts;
-const take = pid => act(() => api('stock/take', {product_id: pid, qty: 1}), 'Sorti du stock');
-const plus = (pid, z) => act(() => api('stock/add', {product_id: pid, qty: 1, zone: z}), 'Ajouté');
+const take = (pid, u) => act(() => api('stock/take', u > 1 ? {product_id: pid, units: 1} : {product_id: pid, qty: 1}), 'Sorti du stock');
+const plus = (pid, z, u) => act(() => api('stock/add', u > 1 ? {product_id: pid, units: 1, zone: z} : {product_id: pid, qty: 1, zone: z}), 'Ajouté');
 
 function openAdd() { $('#aName').value = ''; $('#aQty').value = 1; $('#aExp').value = ''; $('#aZone').value = 'frigo'; loadProducts(); dAdd.showModal(); $('#aName').focus(); }
 $('#aName').onchange = () => { const p = PRODUCTS.find(p => p.name === $('#aName').value); if (p) $('#aZone').value = p.zone; };
@@ -406,6 +509,7 @@ async function openProd(id) {
   PROD = PRODUCTS.find(p => p.id === id); if (!PROD) return;
   $('#pName').value = PROD.name; $('#pBrand').value = PROD.brand || ''; $('#pZone').value = PROD.zone;
   $('#pMin').value = PROD.min_qty || 0; $('#pOpen').value = PROD.open_days || 0; $('#pKeep').value = PROD.keep_days || 0;
+  $('#pUnits').value = PROD.units || 1; $('#pScanOut').value = PROD.scan_out || 'unit'; $('#pRayon').value = PROD.rayon || '';
   $('#pDrive').value = PROD.drive_name || ''; $('#pUrl').value = PROD.drive_url || ''; $('#pCode').value = '';
   $('#pCodes').textContent = PROD.barcodes.length ? 'Codes-barres : ' + PROD.barcodes.join(', ') : 'Aucun code-barres';
   $('#pMerge').innerHTML = '<option value="">— garder comme produit à part —</option>' + PRODUCTS.filter(p => p.id !== id).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
@@ -418,7 +522,8 @@ function saveProd() {
   if (into) return act(() => api('product/merge', {from: PROD.id, into}), 'Produits fusionnés');
   act(() => api('product/save', {id: PROD.id, name: $('#pName').value, brand: $('#pBrand').value, zone: $('#pZone').value,
     min_qty: $('#pMin').value, open_days: $('#pOpen').value, keep_days: $('#pKeep').value, drive_name: $('#pDrive').value,
-    drive_url: $('#pUrl').value, add_barcode: $('#pCode').value}), 'Fiche enregistrée');
+    drive_url: $('#pUrl').value, add_barcode: $('#pCode').value, units: $('#pUnits').value, scan_out: $('#pScanOut').value,
+    rayon: $('#pRayon').value}), 'Fiche enregistrée');
 }
 function delProd() { if (!confirm('Supprimer ce produit et son stock ?')) return; dProd.close(); act(() => api('product/delete', {id: PROD.id}), 'Supprimé'); }
 
@@ -439,9 +544,147 @@ function saveSettings() {
 const testNotify = () => act(async () => toast((await api('test-notify', {})).ok ? 'Notification envoyée' : '⚠️ Vérifie le service de notification'));
 async function manualScan() {
   const c = $('#code').value.trim(); if (!c) return;
-  try { const r = await api('scan', {code: c}); toast(r.message); $('#code').value = ''; load(); } catch (e) { toast('⚠️ ' + e.message); }
+  try { const r = await api('scan', {code: c}); toast(r.message, true); $('#code').value = ''; load(); } catch (e) { toast('⚠️ ' + e.message); }
 }
 $('#code').onkeydown = e => { if (e.key === 'Enter') manualScan(); };
+
+
+// ------------------------------------------------ scanner (caméra du téléphone / de la tablette)
+let SMODE = 'consume', QR = null, LAST = {code: '', t: 0}, BUSY = false;
+for (const b of document.querySelectorAll('#smode button')) b.onclick = () => {
+  SMODE = b.dataset.m;
+  for (const x of document.querySelectorAll('#smode button')) x.className = (x === b ? 'on' : '') + (x === b && (SMODE === 'consume' || SMODE === 'waste') ? ' r' : '');
+};
+function loadLib() {
+  if (window.Html5Qrcode) return Promise.resolve();
+  return new Promise((ok, ko) => { const sc = document.createElement('script');
+    sc.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'; sc.onload = ok; sc.onerror = () => ko(new Error('lecteur de code-barres non chargé')); document.head.appendChild(sc); });
+}
+const FORMATS = () => [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A,
+  Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.QR_CODE];
+async function openScan() {
+  dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = '';
+  try {
+    await loadLib();
+    QR = new Html5Qrcode('reader', {formatsToSupport: FORMATS(), verbose: false});
+    await QR.start({facingMode: 'environment'}, {fps: 10, qrbox: (w, h) => ({width: Math.min(w * 0.85, 360), height: Math.min(h * 0.5, 160)})},
+      code => onCode(code), () => {});
+  } catch (e) { $('#reader').innerHTML = `<p class="hist" style="padding:10px;color:#fff">Caméra indisponible ici (${esc(e.message || e)}). Utilise « Prendre une photo du code ».</p>`; }
+}
+async function closeScan() { try { if (QR) { await QR.stop(); QR.clear(); } } catch {} QR = null; dScan.close(); load(); }
+dScan.addEventListener('close', () => { try { if (QR) { QR.stop().then(() => QR.clear()).catch(() => {}); } } catch {} QR = null; });
+function photoScan() { $('#photoIn').value = ''; $('#photoIn').click(); }
+$('#photoIn').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { await loadLib(); const tmp = new Html5Qrcode('reader', {formatsToSupport: FORMATS(), verbose: false});
+    const code = await tmp.scanFile(f, false); onCode(code); }
+  catch { toast('Code-barres illisible sur la photo, réessaie de plus près'); }
+};
+async function onCode(code) {
+  if (BUSY || (code === LAST.code && Date.now() - LAST.t < 3000)) return;
+  LAST = {code, t: Date.now()}; BUSY = true;
+  try { if (navigator.vibrate) navigator.vibrate(80); } catch {}
+  try {
+    const info = await api('lookup?code=' + encodeURIComponent(code));
+    if (info.known && (SMODE === 'consume' || SMODE === 'waste')) askAmount(info, code);
+    else { await doScan(code, null); }
+  } catch (e) { toast('⚠️ ' + e.message); BUSY = false; }
+}
+function askAmount(info, code) {
+  $('#cTitle').textContent = info.name;
+  const verb = SMODE === 'waste' ? 'Jeter' : 'Sortir';
+  const left = info.units > 1 ? `${nb(info.left_units)} unité(s) en stock (${info.units} par paquet)` : `${nb(info.qty)} en stock`;
+  $('#cSub').textContent = left;
+  const btns = [];
+  if (info.units > 1) btns.push(`<button class="main" data-a="unit">${verb} 1 unité<span>ex. 1 bouteille, 1 pot, 1 brique</span></button>`,
+                                `<button data-a="pack">${verb} le paquet entier<span>${info.units} unités</span></button>`);
+  else btns.push(`<button class="main" data-a="unit">${verb} 1<span>il en restera ${nb(Math.max(0, info.qty - 1))}</span></button>`);
+  btns.push(`<button data-a="all">Il n'y en a plus du tout<span>stock à 0</span></button>`);
+  $('#cBtns').innerHTML = btns.join('');
+  for (const b of document.querySelectorAll('#cBtns button')) b.onclick = async () => { dChoice.close(); await doScan(code, b.dataset.a); };
+  dChoice.showModal();
+  dChoice.addEventListener('close', () => { BUSY = false; }, {once: true});
+}
+async function doScan(code, amount) {
+  try { const r = await api('scan', {code, mode: SMODE, amount, source: 'camera'}); toast(r.message, true); }
+  catch (e) { toast('⚠️ ' + e.message); }
+  BUSY = false;
+}
+// sans code-barres : recherche par nom
+$('#sq').oninput = async () => {
+  const t = $('#sq').value.trim(); if (t.length < 2) { $('#sres').innerHTML = ''; return; }
+  const all = Object.values(OV.zones).flat().filter(x => (x.name + ' ' + x.brand).toLowerCase().includes(t.toLowerCase())).slice(0, 8);
+  $('#sres').innerHTML = all.map(x => `<div class="item compact">${thumb(x)}<div class="mid"><div class="name">${esc(x.name)}</div><div class="sub">${ZL[Object.keys(OV.zones).find(z => OV.zones[z].includes(x))] || ''} · ${x.units > 1 ? nb(x.units_left) + ' unité(s)' : nb(x.qty)}</div></div>
+    <button class="btn small" onclick="manualOut('${x.product_id}')">Choisir</button></div>`).join('') || '<div class="empty">Rien en stock à ce nom.</div>';
+};
+function manualOut(pid) {
+  const x = Object.values(OV.zones).flat().find(i => i.product_id === pid);
+  if (SMODE === 'add') return act(() => api('stock/add', x.units > 1 ? {product_id: pid, units: 1} : {product_id: pid, qty: 1}), 'Ajouté');
+  if (SMODE === 'open') return act(() => api('stock/open', {product_id: pid}), 'Marqué ouvert');
+  askAmountManual(x);
+}
+function askAmountManual(x) {
+  const kind = SMODE === 'waste' ? 'waste' : 'consume';
+  $('#cTitle').textContent = x.name;
+  $('#cSub').textContent = x.units > 1 ? `${nb(x.units_left)} unité(s) en stock` : `${nb(x.qty)} en stock`;
+  const btns = [];
+  if (x.units > 1) btns.push(`<button class="main" data-b='{"units":1}'>1 unité</button>`, `<button data-b='{"qty":1}'>Le paquet entier</button>`);
+  else btns.push(`<button class="main" data-b='{"qty":1}'>1</button>`);
+  btns.push(`<button data-b='{"all":true}'>Il n'y en a plus du tout<span>stock à 0</span></button>`);
+  $('#cBtns').innerHTML = btns.join('');
+  for (const b of document.querySelectorAll('#cBtns button')) b.onclick = () => { dChoice.close();
+    act(() => api('stock/take', Object.assign({product_id: x.product_id, kind}, JSON.parse(b.dataset.b))), kind === 'waste' ? 'Noté comme jeté' : 'Sorti du stock').then(() => $('#sq').oninput()); };
+  dChoice.showModal();
+}
+
+// ------------------------------------------------ recettes
+let RECIPES = [], RF = 'all', COOK = null;
+for (const b of document.querySelectorAll('#rfilters button')) b.onclick = () => { RF = b.dataset.f;
+  for (const x of document.querySelectorAll('#rfilters button')) x.classList.toggle('on', x === b); renderRecipes(); };
+async function loadRecipes() { const r = await api('recipes'); RECIPES = r.recipes; $('#claudeBox').classList.toggle('hide', !r.claude && !RECIPES.length && false); window.CLAUDE = r.claude; renderRecipes(); }
+function renderRecipes() {
+  let rs = RECIPES;
+  if (RF === 'ok') rs = rs.filter(r => !r.missing);
+  if (RF === 'urgent') rs = rs.filter(r => r.urgent.length);
+  if (RF === 'fast') rs = rs.filter(r => (r.time || 99) <= 25);
+  if (RF === 'fav') rs = rs.filter(r => r.fav);
+  $('#recipes').innerHTML = rs.map(r => `<div class="recipe">
+    <div class="row" style="justify-content:space-between;align-items:start"><h3>${esc(r.title)}</h3>
+      <button class="ib" title="Favori" onclick="act(()=>api('recipes/fav',{id:'${r.id}'})).then(loadRecipes)">${r.fav ? '★' : '☆'}</button></div>
+    <div class="meta"><span>⏱ ${r.time} min</span><span>· ${r.servings} pers.</span>
+      ${r.missing ? `<span class="tag a">il manque ${r.missing}</span>` : '<span class="tag g">tout est là</span>'}
+      ${r.urgent.length ? `<span class="tag r">anti-gaspi</span>` : ''}</div>
+    ${r.urgent.length ? `<div class="hist">Utilise : ${esc(r.urgent.slice(0, 3).join(', '))}</div>` : ''}
+    <details><summary>Ingrédients et étapes</summary>
+      <ul>${r.ingredients.map(i => `<li class="${i.have ? 'ing-ok' : (i.optional ? '' : 'ing-no')}">${i.have ? '✓' : (i.optional ? '○' : '✗')} ${esc(i.qty || '')} ${esc(i.name)}${i.optional ? ' (facultatif)' : ''}</li>`).join('')}</ul>
+      <ol>${r.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>
+    <div class="row"><button class="btn small" onclick="openCook('${r.id}')">J'ai cuisiné</button>
+      ${r.missing ? `<button class="btn small light" onclick="act(()=>api('recipes/missing',{id:'${r.id}'}),'Ajouté à la liste de courses')">Ajouter les manquants</button>` : ''}
+      <button class="btn small light" onclick="if(confirm('Supprimer cette recette ?'))act(()=>api('recipes/delete',{id:'${r.id}'})).then(loadRecipes)">Supprimer</button></div>
+  </div>`).join('') || '<div class="empty">Aucune recette ici pour le moment.</div>';
+}
+async function genRecipes() {
+  if (!window.CLAUDE) return toast('Ajoute ta clé Anthropic dans la configuration de l’extension, ou demande à Claude dans le chat.');
+  toast('Claude cherche des idées… (≈ 30 s)');
+  try { const r = await api('recipes/generate', {wish: $('#wish').value}); toast(r.ok ? r.message : '⚠️ ' + r.message); loadRecipes(); }
+  catch (e) { toast('⚠️ ' + e.message); }
+}
+function openCook(id) {
+  COOK = RECIPES.find(r => r.id === id);
+  $('#kTitle').textContent = COOK.title;
+  const seen = new Set(), rows = [];
+  for (const i of COOK.ingredients) for (const st of i.stock.slice(0, 1)) { if (seen.has(st.product_id)) continue; seen.add(st.product_id);
+    rows.push(`<div class="item compact"><button class="check on" data-p="${st.product_id}" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✓':''">✓</button>
+      <div class="mid"><div class="name">${esc(st.name)}</div><div class="sub">${esc(i.qty || '')} · en stock : ${nb(st.left)}${st.units > 1 ? ' unité(s)' : ''}</div></div>
+      <input type="number" min="0" step="1" value="1" style="width:64px" data-u="${st.product_id}"></div>`); }
+  $('#kItems').innerHTML = rows.join('') || '<div class="empty">Aucun produit du stock trouvé pour cette recette.</div>';
+  dCook.showModal();
+}
+function doCook() {
+  const items = [...document.querySelectorAll('#kItems .check.on')].map(b => ({product_id: b.dataset.p, units: +document.querySelector(`[data-u="${b.dataset.p}"]`).value || 0})).filter(x => x.units > 0);
+  dCook.close();
+  act(() => api('recipes/cook', {items}), 'Bon appétit ! Stock mis à jour').then(loadRecipes);
+}
 
 // ------------------------------------------------ navigation
 function go(t) {
@@ -450,10 +693,14 @@ function go(t) {
   for (const s of document.querySelectorAll('section')) s.classList.toggle('hide', s.id !== 't-' + t);
   if (t === 'products') loadProducts();
   if (t === 'settings') loadSettings();
+  if (t === 'recipes') loadRecipes();
   scrollTo(0, 0);
 }
 for (const b of document.querySelectorAll('nav button')) b.onclick = () => go(b.dataset.t);
 load().then(loadProducts).catch(e => toast('⚠️ ' + e.message));
+// ouverture directe du scanner depuis un bouton du tableau de bord (…/ee978681_tessfood#scan)
+try { const L = (window.parent && window.parent !== window ? window.parent.location : location);
+  if (/scan/.test(L.hash + L.search)) { setTimeout(openScan, 600); try { history.replaceState && window.parent.history.replaceState(null, '', L.pathname); } catch {} } } catch {}
 setInterval(() => { if (!document.querySelector('dialog[open]')) load().catch(() => {}); }, 15000);
 </script>
 </body>

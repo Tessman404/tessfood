@@ -6,9 +6,11 @@
 substitutions:
   tessfood_url: "http://192.168.1.10:8098/scan"   # adresse de ton Home Assistant + :8098/scan
   tessfood_token: "COLLE_ICI_LE_JETON"            # jeton visible dans Tessfood > Réglages
+  tessfood_mode: "consume"                        # consume = sortir (poubelle), add = ajouter (rangement des courses)
+  device_name: "tessfood-scanner"                 # tessfood-scanner-2 pour la deuxième douchette
 
 esphome:
-  name: tessfood-scanner
+  name: ${device_name}
   friendly_name: Scanner Tessfood
 
 esp32:
@@ -53,7 +55,7 @@ text_sensor:
     on_value:
       then:
         - http_request.post:
-            url: ${tessfood_url}
+            url: ${tessfood_url}?mode=${tessfood_mode}
             request_headers:
               X-Token: ${tessfood_token}
               Content-Type: text/plain

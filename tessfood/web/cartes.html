@@ -36,7 +36,7 @@ function code128(txt) {
   return `<svg viewBox="0 0 ${x + 10} 60" preserveAspectRatio="none">${bars}</svg>`;
 }
 const C = [['TF-SORTIE', 'SORTIE', 'Mode par défaut : retire du stock'], ['TF-AJOUT', 'AJOUTER', 'Ajoute au stock'],
-           ['TF-OUVERT', 'OUVERT', 'Marque le produit comme entamé'], ['TF-JETE', 'JETÉ', 'Périmé / gaspillé'],
+           ['TF-OUVERT', 'OUVERT', 'Marque le produit comme entamé'], ['TF-JETE', 'JETÉ', 'Périmé / gaspillé'], ['TF-FINI', 'FINI', 'Plus rien : stock à 0'],
            ['TF-ANNULER', 'ANNULER', 'Défait le dernier scan']];
 document.getElementById('g').innerHTML = C.map(([c, t, s]) => `<div class="card"><b>${t}</b><small>${s}</small>${code128(c)}<div class="code">${c}</div></div>`).join('');
 </script>

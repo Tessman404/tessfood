@@ -34,8 +34,10 @@ ZONES = ["frigo", "congelateur", "placard", "cellier", "maison"]
 ZONE_LABEL = {"frigo": "Frigo", "congelateur": "Congélateur", "placard": "Placard", "cellier": "Cellier / boissons", "maison": "Maison (hygiène, entretien)"}
 
 # Cartes à scanner pour changer d'action (imprimables depuis l'appli)
-MODE_CARDS = {"TF-SORTIE": "consume", "TF-AJOUT": "add", "TF-OUVERT": "open", "TF-JETE": "waste", "TF-ANNULER": "undo"}
-MODE_LABEL = {"consume": "Sortie du stock", "add": "Ajout au stock", "open": "Produit ouvert", "waste": "Jeté (périmé)"}
+MODE_CARDS = {"TF-SORTIE": "consume", "TF-AJOUT": "add", "TF-OUVERT": "open", "TF-JETE": "waste", "TF-FINI": "empty",
+              "TF-ANNULER": "undo"}
+MODE_LABEL = {"consume": "Sortie du stock", "add": "Ajout au stock", "open": "Produit ouvert", "waste": "Jeté (périmé)",
+              "empty": "Tout est fini"}
 MODE_WINDOW = 90  # secondes pendant lesquelles une carte de mode reste active
 
 DEFAULT_SETTINGS = {
@@ -65,13 +67,43 @@ def iso(d):
 
 
 def norm(s):
-    s = unicodedata.normalize("NFD", (s or "").lower())
+    s = (s or "").lower().replace("œ", "oe").replace("æ", "ae")
+    s = unicodedata.normalize("NFD", s)
     s = "".join(c for c in s if unicodedata.category(c) != "Mn")
     return re.sub(r"[^a-z0-9 ]+", " ", s).strip()
 
 
 def new_id():
     return uuid.uuid4().hex[:10]
+
+
+UNDO = []  # instantanés de la base avant chaque modification (en mémoire, 20 derniers)
+UNDO_LABEL = {"/api/stock/take": "sortie du stock", "/api/stock/add": "ajout au stock", "/api/stock/open": "produit ouvert",
+              "/api/stock/edit": "modification", "/api/product/save": "fiche produit", "/api/product/delete": "suppression du produit",
+              "/api/product/merge": "fusion de produits", "/api/check": "vérification", "/api/shopping/update": "liste de courses",
+              "/api/shopping/add": "liste de courses", "/api/order/receive": "rangement des courses", "/api/recipes/cook": "recette cuisinée",
+              "/api/recipes/delete": "suppression de recette", "/api/scan": "scan", "/api/order/create": "commande"}
+
+
+def snapshot(path):
+    try:
+        with open(DB_PATH, encoding="utf-8") as f:
+            UNDO.append((path, f.read(), time.time()))
+        del UNDO[:-20]
+    except OSError:
+        pass
+
+
+def undo():
+    if not UNDO:
+        return {"ok": False, "message": "Rien à annuler"}
+    path, raw, _ = UNDO.pop()
+    with LOCK:
+        tmp = DB_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(raw)
+        os.replace(tmp, DB_PATH)
+    return {"ok": True, "message": f"Annulé : {UNDO_LABEL.get(path, 'dernière action')}"}
 
 
 def load_db():
@@ -198,6 +230,56 @@ def off_lookup(code):
             "cats": cats}
 
 
+# ---------------------------------------------------------------- rayons
+RAYONS = [
+    ("Fromages", ("fromage", "emmental", "comte", "camembert", "coulommiers", "cheddar", "mozzarella", "babybel",
+                  "raclette", "morbier", "tomme", "felicien", "gouda", "mimolette")),
+    ("Yaourts & desserts", ("yaourt", "dessert", "liegeois", "mousse", "paturette", "frulos", "yab", "suiss", "fromage blanc",
+                            "paquito", "gourde", "compote", "creme dessert")),
+    ("Lait, beurre, crème & œufs", ("lait", "beurre", "creme", "oeuf")),
+    ("Viandes & poissons", ("steak", "hache", "poulet", "dinde", "volaille", "porc", "boeuf", "poitrine", "saumon", "colin",
+                            "poisson", "jacques", "boulette", "cordon", "nugget", "viande", "foie", "pot au feu", "epaule",
+                            "thon", "surimi", "coraya")),
+    ("Charcuterie", ("jambon", "lardon", "allumette", "saucisse", "saucisson", "fuet", "chorizo", "rillette", "knack", "terrine")),
+    ("Plats préparés", ("pizza", "lasagne", "risotto", "basquaise", "poelee", "feuillete", "tarte", "croqueta", "sandwich",
+                        "ravioli", "tortellini", "quiche", "pate brisee", "pate feuilletee", "galette")),
+    ("Fruits & légumes", ("salade", "mache", "mesclun", "tomate", "carotte", "oignon", "champignon", "concombre", "laitue",
+                          "pomme de terre", "pommes de terre", "banane", "pomme golden", "brocoli", "chou", "epinard", "poivron", "poireau",
+                          "haricot", "petits pois", "legume", "betterave", "mais", "flageolet", "macedoine", "ratatouille")),
+    ("Pâtes, riz & féculents", ("pate", "spaghetti", "macaroni", "coquillette", "farfalle", "fusilli", "tagliatelle", "riz",
+                                "couscous", "ble", "perles", "crozets", "gnocchi", "semoule", "nouille", "frites", "rosti",
+                                "pommes noisettes", "cubes de pommes")),
+    ("Sauces & condiments", ("sauce", "mayonnaise", "moutarde", "ketchup", "vinaigre", "huile", "tabasco", "chutney",
+                             "cornichon", "citron", "soja", "bouillon", "fond de", "bechamel", "puree de tomates")),
+    ("Épices & aides", ("epice", "paprika", "curry", "cumin", "curcuma", "poivre", "sel", "herbes", "thym", "muscade", "ail",
+                        "baies", "levure", "farine", "sucre", "chapelure", "maizena", "pepites")),
+    ("Petit-déjeuner & sucré", ("chocapic", "cereale", "coco pops", "tresor", "nesquik", "nutella", "chocolat", "cafe", "the ",
+                                "brioche", "gache", "madeleine", "galette bretonne", "palet", "biscuit", "cracotte", "miel",
+                                "confiture", "pain au chocolat", "moelleux", "ecolier", "rollos", "glace", "sorbet")),
+    ("Pain", ("pain", "baguette", "viennoiserie", "wrap", "canape", "burger")),
+    ("Apéritif & bonbons", ("chips", "crok", "tub s", "crackers", "cacahuete", "melange exotique", "gaufrette", "haribo",
+                            "bonbon", "dragibus", "chewing", "sucette", "smarties", "maoam", "ourson", "fils")),
+]
+RAYONS_BOISSONS = [("Bières", ("biere", "leffe", "bud", "grimbergen", "affligem", "goudale", "pelforth", "desperados",
+                                "stella", "tourtel", "softiz", "picon", "secret des moines")),
+                   ("Vins & alcools", ("vin", "whisky", "rhum", "ricard", "gin", "porto", "cotes", "chinon", "listel")),
+                   ("Softs & eaux", ("eau", "cola", "coca", "schweppes", "fanta", "jus", "sirop", "look", "pellegrino", "perrier"))]
+
+
+def rayon_of(p):
+    if p.get("rayon"):
+        return p["rayon"]
+    t = " " + norm(p.get("name", "") + " " + p.get("brand", "")) + " "
+    z = p.get("zone")
+    if z == "maison":
+        return "Hygiène & entretien"
+    table = RAYONS_BOISSONS + RAYONS if z == "cellier" else RAYONS + RAYONS_BOISSONS
+    for r, words in table:
+        if any(w in t for w in words):
+            return r
+    return "Divers"
+
+
 # ---------------------------------------------------------------- produits & stock
 def product_by_code(d, code):
     for p in d["products"].values():
@@ -263,6 +345,21 @@ def make_product(d, name, code=None, info=None, zone=None):
     p["keep_days"], p["open_days"] = estimate_shelf(p["name"], info.get("cats", ""), p["zone"])
     d["products"][pid] = p
     return p
+
+
+def guess_units(qty_text, name=""):
+    """« 8 × 125 g » -> 8, « 20 œufs » -> 20, « 6 × 1 L » -> 6 ; sinon 1."""
+    t = (qty_text or "") + " " + (name or "")
+    m = re.search(r"(\d+)\s*[x×]\s*\d", t)
+    if m:
+        return max(1, int(m.group(1)))
+    m = re.search(r"(\d+)\s*(oeufs|œufs|pots|bouteilles|briques|canettes|gourdes|sachets|portions|cones|cônes|batonnets|bâtonnets)", t, re.I)
+    return max(1, int(m.group(1))) if m else 1
+
+
+def units_of(p):
+    u = p.get("units")
+    return int(u) if u else guess_units(p.get("quantity"), p.get("name"))
 
 
 def stock_qty(d, pid):
@@ -345,16 +442,17 @@ def check_min(d, p):
 
 
 # ---------------------------------------------------------------- scanner
-def scan(code, source="scanner"):
+def scan(code, source="scanner", default_mode="consume", amount=None):
+    default_mode = default_mode if default_mode in MODE_LABEL else "consume"
     code = re.sub(r"\s+", "", str(code or ""))
     if not code:
         return {"ok": False, "message": "code vide"}
     with LOCK:
         d = load_db()
         st = d["state"]
-        mode = st.get("mode", "consume")
+        mode = st.get("mode", default_mode)
         if time.time() - st.get("mode_ts", 0) > MODE_WINDOW:
-            mode = "consume"
+            mode = default_mode
         card = MODE_CARDS.get(code.upper())
         if card == "undo":
             res = undo_last(d)
@@ -382,15 +480,22 @@ def scan(code, source="scanner"):
                     d["unknown"].append({"code": code, "product_id": p["id"], "ts": now().isoformat(timespec="seconds")})
 
         warn = ""
+        u = units_of(p)
+        if amount not in ("unit", "pack", "all"):
+            amount = "pack" if p.get("scan_out") == "pack" else "unit"
+        step = 1 if amount == "pack" or u <= 1 else 1 / u
+        if mode == "empty":
+            mode, amount = "consume", "all"
         if mode == "add":
-            add_stock(d, p, 1, source=source)
+            add_stock(d, p, 1, source=source)  # un paquet acheté
         elif mode == "open":
             if not open_stock(d, p, source):
                 add_stock(d, p, 1, source=source)
                 open_stock(d, p, source)
                 warn = "il n'était pas dans le stock, je l'ai ajouté"
         else:
-            if take_stock(d, p, 1, "waste" if mode == "waste" else "consume", source):
+            q = stock_qty(d, p["id"]) if amount == "all" else step
+            if q <= 0 or take_stock(d, p, round(q, 4), "waste" if mode == "waste" else "consume", source):
                 warn = "il n'était pas dans le stock"
             check_min(d, p)
         if mode != "consume":
@@ -399,13 +504,15 @@ def scan(code, source="scanner"):
         st["last_scan"] = {"ts": now().isoformat(timespec="seconds"), "code": code, "product_id": p["id"], "mode": mode}
         save_db(d)
         sync_alexa_soon()
-    msg = f"{p['name']} : {MODE_LABEL[mode].lower()}, il en reste {fmt_qty(left)}"
+    left_txt = f"{round(left * u)} {'unité' if round(left * u) <= 1 else 'unités'}" if u > 1 else fmt_qty(left)
+    msg = f"{p['name']} : {MODE_LABEL[mode].lower()}, il en reste {left_txt}"
     if warn:
         msg += f" ({warn})"
-    res = {"ok": True, "mode": mode, "product": p["name"], "product_id": p["id"], "left": left, "new": created,
+    res = {"ok": True, "mode": mode, "product": p["name"], "product_id": p["id"], "left": left, "units": u,
+           "left_units": round(left * u), "left_text": left_txt, "new": created,
            "warning": warn, "message": msg}
     fire_event(res)
-    announce(f"{p['name']}, il en reste {fmt_qty(left)}" if mode == "consume" else f"{p['name']}, {MODE_LABEL[mode].lower()}")
+    announce(f"{p['name']}, il en reste {left_txt}" if mode == "consume" else f"{p['name']}, {MODE_LABEL[mode].lower()}")
     return res
 
 
@@ -632,6 +739,129 @@ def order_receive(d, oid, received):
     o["received"] = iso(today())
 
 
+# ---------------------------------------------------------------- recettes
+def _matches(stock_items, keywords):
+    out = []
+    for it in stock_items:
+        n = " " + norm(it["name"]) + " "
+        if any(all(w in n for w in norm(k).split()) for k in keywords if norm(k)):
+            out.append(it)
+    return out
+
+
+def recipes_view(d):
+    items = {}
+    for s_ in d["stock"]:
+        p = d["products"].get(s_["product_id"])
+        if not p or s_["qty"] <= 0:
+            continue
+        e = parse_date(s_.get("expiry"))
+        days = (e - today()).days if e else None
+        it = items.setdefault(p["id"], {"product_id": p["id"], "name": p["name"], "qty": 0, "days": days,
+                                        "units": units_of(p), "image": p.get("image", "")})
+        it["qty"] = round(it["qty"] + s_["qty"], 3)
+        if days is not None and (it["days"] is None or days < it["days"]):
+            it["days"] = days
+    stock_items = list(items.values())
+    warn = int(d["settings"].get("expiry_warn_days", 3)) + 2
+    out = []
+    for r in d.get("recipes", []):
+        ings, have, need, urgent = [], 0, 0, []
+        for ing in r.get("ingredients", []):
+            m = _matches(stock_items, ing.get("match") or [ing["name"]])
+            ok = bool(m)
+            if not ing.get("optional"):
+                need += 1
+                have += ok
+            for x in m:
+                if x["days"] is not None and x["days"] <= warn:
+                    urgent.append(f"{x['name']} ({'périmé' if x['days'] < 0 else str(x['days']) + ' j'})")
+            ings.append(dict(ing, have=ok, stock=[{"product_id": x["product_id"], "name": x["name"],
+                                                    "units": x["units"], "left": round(x["qty"] * x["units"], 1)} for x in m[:3]]))
+        score = (have / need if need else 1) + (0.3 if urgent else 0)
+        out.append(dict(r, ingredients=ings, have=have, need=need, missing=need - have,
+                        urgent=list(dict.fromkeys(urgent)), score=round(score, 3)))
+    out.sort(key=lambda x: (-x["score"], x.get("time", 99)))
+    return {"recipes": out, "claude": bool(os.environ.get("ANTHROPIC_API_KEY"))}
+
+
+def stock_summary(d):
+    lines = []
+    for s_ in d["stock"]:
+        p = d["products"].get(s_["product_id"])
+        if p:
+            e = parse_date(s_.get("expiry"))
+            lines.append(f"- {p['name']} ({ZONE_LABEL.get(s_['zone'], s_['zone'])})"
+                         + (f", à consommer avant {e.strftime('%d/%m')}" if e and (e - today()).days <= 7 else ""))
+    return "\n".join(sorted(set(lines)))
+
+
+def generate_recipes(body):
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key:
+        return {"ok": False, "message": "Ajoute une clé Anthropic dans la configuration de l'extension pour ce bouton."}
+    with LOCK:
+        d = load_db()
+        summary = stock_summary(d)
+    wish = (body.get("wish") or "").strip()
+    prompt = ("Tu es un cuisinier familial français. Voici le contenu actuel de ma cuisine (frigo, congélateur, placards) :\n"
+              f"{summary}\n\n"
+              "Propose 6 recettes simples du quotidien pour 3 personnes, réalisables surtout avec ces produits, "
+              "en utilisant en priorité ceux qui périment bientôt. Unités : uniquement kg, càs, càc ou un nombre de pièces "
+              "(jamais g, ml, cup, oz)." + (f" Envie particulière : {wish}." if wish else "") +
+              "\nRéponds UNIQUEMENT avec un tableau JSON, sans texte autour, de la forme : "
+              '[{"title": "...", "time": 30, "servings": 3, "tags": ["rapide"], '
+              '"ingredients": [{"name": "Lardons", "qty": "0,2 kg", "match": ["lardon"], "optional": false}], '
+              '"steps": ["...", "..."]}]. Dans "match", mets 1 à 3 mots-clés simples (sans accents) qui se retrouvent '
+              "dans le nom du produit en stock.")
+    req = urllib.request.Request("https://api.anthropic.com/v1/messages", method="POST",
+                                 data=json.dumps({"model": os.environ.get("CLAUDE_MODEL", "claude-sonnet-5-5"),
+                                                  "max_tokens": 6000,
+                                                  "messages": [{"role": "user", "content": prompt}]}).encode("utf-8"),
+                                 headers={"x-api-key": key, "anthropic-version": "2023-06-01",
+                                          "content-type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r:
+            resp = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "message": f"Claude a répondu {e.code}"}
+    except Exception as e:
+        return {"ok": False, "message": f"Claude injoignable : {e}"}
+    text = "".join(b.get("text", "") for b in resp.get("content", []))
+    m = re.search(r"\[.*\]", text, re.S)
+    try:
+        recs = json.loads(m.group(0)) if m else []
+    except ValueError:
+        recs = []
+    if not recs:
+        return {"ok": False, "message": "Réponse de Claude illisible, réessaie."}
+    with LOCK:
+        d = load_db()
+        n = import_recipes(d, recs, "claude")
+        save_db(d)
+    return {"ok": True, "message": f"{n} nouvelles recettes proposées par Claude"}
+
+
+def import_recipes(d, recs, source="claude"):
+    d.setdefault("recipes", [])
+    known = {norm(r["title"]) for r in d["recipes"]}
+    n = 0
+    for r in recs:
+        if not r.get("title") or norm(r["title"]) in known:
+            continue
+        r = {"id": new_id(), "title": r["title"], "time": int(r.get("time") or 30), "servings": int(r.get("servings") or 3),
+             "tags": r.get("tags") or [], "ingredients": r.get("ingredients") or [], "steps": r.get("steps") or [],
+             "source": source, "added": iso(today()), "fav": False}
+        d["recipes"].append(r)
+        known.add(norm(r["title"]))
+        n += 1
+    # on garde les favorites + les 40 plus récentes
+    favs = [r for r in d["recipes"] if r.get("fav")]
+    rest = [r for r in d["recipes"] if not r.get("fav")][-40:]
+    d["recipes"] = favs + rest
+    return n
+
+
 # ---------------------------------------------------------------- tableau & capteurs HA
 def overview(d):
     zones = {z: [] for z in ZONES}
@@ -643,9 +873,10 @@ def overview(d):
         zones.setdefault(s["zone"], []).append({
             "stock_id": s["id"], "product_id": p["id"], "name": p["name"], "brand": p.get("brand", ""),
             "image": p.get("image", ""), "qty": s["qty"], "expiry": s.get("expiry"), "opened": s.get("opened"), "est": s.get("est", False),
-            "days": (e - today()).days if e else None, "min_qty": p.get("min_qty", 0)})
+            "days": (e - today()).days if e else None, "min_qty": p.get("min_qty", 0), "rayon": rayon_of(p),
+            "units": units_of(p), "units_left": round(s["qty"] * units_of(p), 1)})
     for z in zones.values():
-        z.sort(key=lambda x: (x["days"] if x["days"] is not None else 999, norm(x["name"])))
+        z.sort(key=lambda x: (x["rayon"], norm(x["name"])))
     items, sugg = shopping_view(d)
     st = d["state"]
     mode = st.get("mode", "consume") if time.time() - st.get("mode_ts", 0) <= MODE_WINDOW else "consume"
@@ -766,6 +997,11 @@ def scheduler():
 
 # ---------------------------------------------------------------- API
 def api(method, path, q, body):
+    if method == "POST" and path == "/api/undo":
+        return undo()
+    if method == "POST" and path in UNDO_LABEL:
+        with LOCK:
+            snapshot(path)
     with LOCK:
         d = load_db()
         if method == "GET":
@@ -773,7 +1009,7 @@ def api(method, path, q, body):
                 return overview(d)
             if path == "/api/products":
                 ps = sorted(d["products"].values(), key=lambda p: norm(p["name"]))
-                return [dict(p, stock=stock_qty(d, p["id"])) for p in ps]
+                return [dict(p, stock=stock_qty(d, p["id"]), units=units_of(p), rayon=rayon_of(p)) for p in ps]
             if path == "/api/settings":
                 return dict(d["settings"], scan_token=SCAN_TOKEN, ha=ha_ok())
             if path == "/api/history":
@@ -781,6 +1017,16 @@ def api(method, path, q, body):
                 return [dict(m, name=d["products"].get(m["product_id"], {}).get("name", "?")) for m in ms]
             if path == "/api/claude":
                 return {"text": claude_text(d)}
+            if path == "/api/lookup":
+                code = re.sub(r"\s+", "", q.get("code", [""])[0])
+                p = product_by_code(d, code)
+                if not p:
+                    return {"known": False, "code": code}
+                return {"known": True, "product_id": p["id"], "name": p["name"], "image": p.get("image", ""),
+                        "units": units_of(p), "qty": stock_qty(d, p["id"]),
+                        "left_units": round(stock_qty(d, p["id"]) * units_of(p))}
+            if path == "/api/recipes":
+                return recipes_view(d)
             if path == "/api/search":
                 t = norm(q.get("q", [""])[0])
                 return [p for p in d["products"].values() if t and t in norm(p["name"] + " " + p.get("brand", ""))][:15]
@@ -797,12 +1043,20 @@ def api(method, path, q, body):
                     raise ValueError("nom manquant")
                 p = product_by_name(d, name) if not body.get("force_new") else None
                 p = p if p and norm(p["name"]) == norm(name) else make_product(d, name, zone=body.get("zone"))
-            add_stock(d, p, float(body.get("qty") or 1), body.get("zone"), body.get("expiry"))
+            qty = float(body["units"]) / units_of(p) if body.get("units") else float(body.get("qty") or 1)
+            add_stock(d, p, round(qty, 4), body.get("zone"), body.get("expiry"))
             save_db(d)
             return {"ok": True, "product_id": p["id"]}
         elif path == "/api/stock/take":
             p = d["products"][body["product_id"]]
-            take_stock(d, p, float(body.get("qty") or 1), body.get("kind", "consume"))
+            if body.get("all"):
+                qty = stock_qty(d, p["id"])
+            elif body.get("units"):
+                qty = float(body["units"]) / units_of(p)
+            else:
+                qty = float(body.get("qty") or 1)
+            if qty > 0:
+                take_stock(d, p, round(qty, 4), body.get("kind", "consume"))
             item = check_min(d, p)
             save_db(d)
             if item:
@@ -824,9 +1078,13 @@ def api(method, path, q, body):
             return {"ok": True}
         elif path == "/api/product/save":
             p = d["products"][body["id"]]
-            for k in ("name", "brand", "zone", "drive_name", "drive_url", "image"):
+            for k in ("name", "brand", "zone", "drive_name", "drive_url", "image", "rayon"):
                 if k in body:
                     p[k] = str(body[k]).strip()
+            if "units" in body:
+                p["units"] = max(1, int(float(body["units"] or 1)))
+            if "scan_out" in body:
+                p["scan_out"] = "pack" if body["scan_out"] == "pack" else "unit"
             for k in ("min_qty", "open_days", "keep_days"):
                 if k in body:
                     p[k] = float(body[k] or 0)
@@ -928,7 +1186,50 @@ def api(method, path, q, body):
                     d["settings"][k] = type(DEFAULT_SETTINGS[k])(v) if v != "" or isinstance(DEFAULT_SETTINGS[k], str) else DEFAULT_SETTINGS[k]
             save_db(d)
             return {"ok": True}
-        elif path == "/api/alexa/sync":
+        elif path == "/api/recipes/import":
+            n = import_recipes(d, body.get("recipes", []), body.get("source", "claude"))
+            save_db(d)
+            return {"ok": True, "added": n}
+        elif path == "/api/recipes/delete":
+            d["recipes"] = [r for r in d.get("recipes", []) if r["id"] != body["id"]]
+            save_db(d)
+            return {"ok": True}
+        elif path == "/api/recipes/fav":
+            for r in d.get("recipes", []):
+                if r["id"] == body["id"]:
+                    r["fav"] = not r.get("fav")
+            save_db(d)
+            return {"ok": True}
+        elif path == "/api/recipes/missing":
+            r = next(x for x in recipes_view(d)["recipes"] if x["id"] == body["id"])
+            n = 0
+            listed = {norm(i["name"]) for i in d["shopping"] if not i.get("done")}
+            for ing in r["ingredients"]:
+                if not ing["have"] and not ing.get("optional") and norm(ing["name"]) not in listed:
+                    p = product_by_name(d, ing["name"])
+                    d["shopping"].append({"id": new_id(), "product_id": p["id"] if p else None, "name": ing["name"],
+                                          "qty": 1, "source": "manual", "done": False,
+                                          "added": now().isoformat(timespec="seconds"), "alexa_uid": None})
+                    n += 1
+            save_db(d)
+            sync_alexa_soon()
+            return {"ok": True, "added": n}
+        elif path == "/api/recipes/cook":
+            for it in body.get("items", []):
+                p = d["products"].get(it["product_id"])
+                if not p:
+                    continue
+                if it.get("all"):
+                    q = stock_qty(d, p["id"])
+                else:
+                    q = float(it.get("units") or 1) / units_of(p)
+                if q > 0:
+                    take_stock(d, p, round(q, 4), "consume", "recette")
+                    check_min(d, p)
+            save_db(d)
+            sync_alexa_soon()
+            return {"ok": True}
+        elif path in ("/api/alexa/sync", "/api/recipes/generate"):
             pass
         elif path == "/api/test-notify":
             pass
@@ -936,7 +1237,15 @@ def api(method, path, q, body):
             raise LookupError(path)
     # hors verrou (appels réseau)
     if path == "/api/scan":
-        return scan(body.get("code"), source=body.get("source", "app"))
+        if body.get("mode"):  # depuis l'appli : l'action choisie à l'écran s'applique directement
+            with LOCK:
+                d = load_db()
+                d["state"]["mode"], d["state"]["mode_ts"] = body["mode"], time.time()
+                save_db(d)
+        return scan(body.get("code"), source=body.get("source", "app"), default_mode=body.get("mode") or "consume",
+                    amount=body.get("amount"))
+    if path == "/api/recipes/generate":
+        return generate_recipes(body)
     if path == "/api/alexa/sync":
         return sync_alexa()
     if path == "/api/test-notify":
@@ -984,7 +1293,8 @@ class Handler(BaseHTTPRequestHandler):
                     token = self.headers.get("X-Token") or body.get("token") or q.get("token", [""])[0]
                     if not SCAN_TOKEN or token != SCAN_TOKEN:
                         return self._send(403, {"ok": False, "message": "jeton du scanner incorrect"})
-                    return self._send(200, scan(code, "scanner"))
+                    dm = body.get("mode") or q.get("mode", ["consume"])[0]
+                    return self._send(200, scan(code, "scanner", dm))
                 if path == "/health":
                     return self._send(200, {"ok": True})
                 return self._send(404, {"ok": False})
