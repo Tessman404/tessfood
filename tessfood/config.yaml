@@ -1,5 +1,5 @@
 name: Tessfood
-version: "1.5.1"
+version: "1.5.2"
 slug: tessfood
 description: Stock du frigo et des placards, liste de courses Alexa et drive Intermarché
 arch: [aarch64, amd64]

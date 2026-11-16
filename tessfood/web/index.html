@@ -122,6 +122,42 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .recipe li{margin:3px 0}
 .ing-ok{color:var(--green2)}.ing-no{color:#b13a22}
 .rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+/* ---- Tablette 24" (écran large, tactile) ---- */
+@media (min-width:1400px){
+  body{font-size:17px;padding-bottom:100px}
+  .wrap{max-width:none;padding:18px 28px 0}
+  header{flex-wrap:nowrap;gap:16px;margin-bottom:10px}
+  header h1{font-size:2.2rem}
+  .last{flex-basis:auto;margin-left:auto;font-size:.95rem}
+  .alerts{margin:0 0 12px}
+  .alerts button{padding:10px 16px;font-size:1rem}
+  .bar input,.btn{padding:13px 16px;font-size:1.02rem}
+  .zchips button{padding:10px 18px;font-size:1.02rem}
+  .board{grid-auto-columns:minmax(300px,1fr);gap:16px}
+  .col{padding:10px 12px 14px}
+  .board .col>h2{font-size:1.3rem}
+  .rayon{font-size:.8rem}
+  .item.compact{padding:9px 10px}
+  .item.compact img,.item.compact .ph{width:52px;height:52px}
+  .board .item{grid-template-columns:52px 1fr 42px auto 42px}
+  .item .ib,.item.compact .ib{width:42px;height:42px;font-size:1.2rem}
+  .board .item .name,.single .item .name{font-size:1rem}
+  .qty{font-size:1.2rem}
+  .single .list{grid-template-columns:repeat(auto-fill,minmax(380px,1fr))}
+  .list{gap:10px}
+  nav{padding:8px 8px 10px}
+  nav button{max-width:170px;font-size:.95rem;padding:8px 4px}
+  nav button svg{width:28px;height:28px}
+  .fab{padding:18px 26px;font-size:1.15rem;bottom:100px;right:28px}
+  .fab svg{width:26px;height:26px}
+  .rgrid{grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px}
+  dialog{width:min(720px,90vw)}
+  #dScan{width:min(900px,92vw)}
+  #reader{max-height:55vh}
+  .seg button{padding:14px 6px;font-size:1.05rem}
+  .choice button{padding:18px;font-size:1.1rem}
+  .toast{font-size:1.05rem;padding:14px 20px;bottom:110px}
+}
 </style>
 </head>
 <body>
