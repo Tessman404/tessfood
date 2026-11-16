@@ -50,6 +50,7 @@ DEFAULT_SETTINGS = {
     "check_hour": 18,
     "drive_store": "Intermarché",
     "announce_entity": "",         # ex. media_player.echo_cuisine (annonce vocale après un scan, optionnel)
+    "auto_list": False,            # True = un produit sous son minimum part tout seul sur la liste (sinon : suggestion)
 }
 
 
@@ -78,7 +79,7 @@ def new_id():
 
 
 UNDO = []  # instantanés de la base avant chaque modification (en mémoire, 20 derniers)
-UNDO_LABEL = {"/api/stock/take": "sortie du stock", "/api/stock/add": "ajout au stock", "/api/stock/open": "produit ouvert",
+UNDO_LABEL = {"/api/suggest/dismiss": "suggestion ignorée", "/api/stock/take": "sortie du stock", "/api/stock/add": "ajout au stock", "/api/stock/open": "produit ouvert",
               "/api/stock/edit": "modification", "/api/product/save": "fiche produit", "/api/product/delete": "suppression du produit",
               "/api/product/merge": "fusion de produits", "/api/check": "vérification", "/api/shopping/update": "liste de courses",
               "/api/shopping/add": "liste de courses", "/api/order/receive": "rangement des courses", "/api/recipes/cook": "recette cuisinée",
@@ -431,8 +432,12 @@ def open_stock(d, p, source="app"):
 def check_min(d, p):
     """Sous le minimum -> ajouté à la liste de courses (et à Alexa)."""
     mq = float(p.get("min_qty") or 0)
-    if mq <= 0 or stock_qty(d, p["id"]) >= mq:
+    q = stock_qty(d, p["id"])
+    low = q < mq if mq > 0 else q <= 0
+    if not low:
         return None
+    if not (p.get("essential") or (mq > 0 and d["settings"].get("auto_list"))):
+        return None  # pas un produit de base : il ira seulement dans les suggestions
     if any(not i.get("done") and i.get("product_id") == p["id"] for i in d["shopping"]):
         return None
     it = {"id": new_id(), "product_id": p["id"], "name": p["name"], "qty": max(1, round(mq - stock_qty(d, p["id"]))),
@@ -678,18 +683,36 @@ def shopping_view(d):
         q = p.get("drive_name") or i["name"]
         out.append(dict(i, image=p.get("image", ""), stock=stock_qty(d, p["id"]) if p else None,
                         drive_url=p.get("drive_url") or "https://www.intermarche.com/recherche/" + urllib.parse.quote(q)))
-    # suggestions : sous le minimum (si pas déjà), produits « sûrement finis »
+    # suggestions (rien n'est ajouté tout seul) : finis récemment, sous le minimum, « sûrement finis »
     listed = {i.get("product_id") for i in items}
-    sugg = []
+    dismissed = d.get("dismissed", {})
+    last_out, last_in = {}, {}
+    for m in d["moves"]:
+        if m["kind"] in ("consume", "waste"):
+            last_out[m["product_id"]] = m["ts"]
+        elif m["kind"] in ("add", "purchase"):
+            last_in[m["product_id"]] = m["ts"]
+    sugg, seen = [], set()
+
+    def add(p, reason, when):
+        if p["id"] in listed or p["id"] in seen or (dismissed.get(p["id"]) or "") >= (when or ""):
+            return
+        seen.add(p["id"])
+        sugg.append({"product_id": p["id"], "name": p["name"], "image": p.get("image", ""), "reason": reason,
+                     "essential": bool(p.get("essential"))})
+    limit = (now() - dt.timedelta(days=45)).isoformat(timespec="seconds")
+    for pid, ts in sorted(last_out.items(), key=lambda x: x[1], reverse=True):
+        p = d["products"].get(pid)
+        if p and ts >= limit and stock_qty(d, pid) <= 0:
+            add(p, "fini le " + ts[8:10] + "/" + ts[5:7], ts)
     for p in d["products"].values():
-        if p["id"] in listed:
-            continue
         mq = float(p.get("min_qty") or 0)
         if mq > 0 and stock_qty(d, p["id"]) < mq:
-            sugg.append({"product_id": p["id"], "name": p["name"], "reason": "sous le minimum"})
+            add(p, "sous le minimum", last_out.get(p["id"], ""))
     for x in doubtful(d):
-        if x["product_id"] not in listed:
-            sugg.append({"product_id": x["product_id"], "name": x["name"], "reason": "sûrement fini"})
+        p = d["products"].get(x["product_id"])
+        if p:
+            add(p, "sûrement fini", last_in.get(p["id"], ""))
     return out, sugg
 
 
@@ -1081,6 +1104,10 @@ def api(method, path, q, body):
             for k in ("name", "brand", "zone", "drive_name", "drive_url", "image", "rayon"):
                 if k in body:
                     p[k] = str(body[k]).strip()
+            if "essential" in body:
+                p["essential"] = bool(body["essential"])
+                if p["essential"]:
+                    check_min(d, p)
             if "units" in body:
                 p["units"] = max(1, int(float(body["units"] or 1)))
             if "scan_out" in body:
@@ -1164,6 +1191,20 @@ def api(method, path, q, body):
             save_db(d)
             sync_alexa_soon()
             return {"ok": True}
+        elif path == "/api/product/essentials":
+            # marque d'un coup les produits de base d'après des mots-clés
+            n = 0
+            for p in d["products"].values():
+                t = " " + norm(p["name"]) + " "
+                if any(norm(k) in t for k in body.get("keywords", [])) and not p.get("essential"):
+                    p["essential"] = True
+                    n += 1
+            save_db(d)
+            return {"ok": True, "marked": n}
+        elif path == "/api/suggest/dismiss":
+            d.setdefault("dismissed", {})[body["product_id"]] = now().isoformat(timespec="seconds")
+            save_db(d)
+            return {"ok": True}
         elif path == "/api/order/create":
             o = order_create(d)
             save_db(d)
@@ -1183,7 +1224,10 @@ def api(method, path, q, body):
         elif path == "/api/settings":
             for k, v in body.items():
                 if k in DEFAULT_SETTINGS:
-                    d["settings"][k] = type(DEFAULT_SETTINGS[k])(v) if v != "" or isinstance(DEFAULT_SETTINGS[k], str) else DEFAULT_SETTINGS[k]
+                    if isinstance(DEFAULT_SETTINGS[k], bool):
+                        d["settings"][k] = v in (True, "true", "1", 1, "on")
+                    else:
+                        d["settings"][k] = type(DEFAULT_SETTINGS[k])(v) if v != "" or isinstance(DEFAULT_SETTINGS[k], str) else DEFAULT_SETTINGS[k]
             save_db(d)
             return {"ok": True}
         elif path == "/api/recipes/import":

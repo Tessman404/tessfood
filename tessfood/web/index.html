@@ -147,13 +147,15 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 
   <!-- COURSES -->
   <section id="t-courses" class="hide">
+    <div class="zchips" id="ctabs"><button class="on" data-c="list">Ma liste</button><button data-c="sugg">Suggestions <small id="nsugg"></small></button></div>
+    <div id="c-sugg" class="hide"><p class="hist">Seuls les <b>produits de base ★</b> partent tout seuls sur la liste. Les autres produits finis arrivent ici : à toi de choisir. « ★ Toujours » en fait un produit de base.</p><div id="sugg" class="list"></div></div>
+    <div id="c-list">
     <div class="bar">
       <input id="newItem" placeholder="Ajouter à la liste (ex. café)" autocomplete="off" list="dl-products">
       <button class="btn" onclick="addItem()">Ajouter</button>
     </div>
     <div id="orders"></div>
     <div id="shop" class="list"></div>
-    <div id="sugg"></div>
     <h2>Drive Intermarché</h2>
     <div class="box">
       <p>Claude peut remplir ton panier Intermarché avec cette liste. C'est toi qui valides et qui paies.</p>
@@ -162,6 +164,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
         <button class="btn light" onclick="createOrder()">Commande passée</button>
         <button class="btn light" onclick="syncAlexa()">Synchroniser Alexa</button>
       </div>
+    </div>
     </div>
   </section>
 
@@ -202,6 +205,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
         <label>Vérification de la semaine
           <select name="check_weekday"><option value="0">Lundi</option><option value="1">Mardi</option><option value="2">Mercredi</option><option value="3">Jeudi</option><option value="4">Vendredi</option><option value="5">Samedi</option><option value="6">Dimanche</option></select></label>
         <label>à (heure)<input name="check_hour" type="number" min="0" max="23"></label>
+
       </div>
       <div class="row" style="margin-top:12px">
         <button class="btn" onclick="saveSettings()">Enregistrer</button>
@@ -294,6 +298,8 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
     <label>Au bip du scanner, sortir
       <select id="pScanOut"><option value="unit">1 unité</option><option value="pack">le paquet entier</option></select></label>
   </div>
+  <label style="display:flex;gap:10px;align-items:center;font-size:.95rem;color:var(--ink)"><input type="checkbox" id="pEss" style="width:22px;height:22px">
+    <span><b>Produit de base</b> — dès qu'il n'y en a plus, il part tout seul sur la liste de courses</span></label>
   <label>Rayon<input id="pRayon" list="dl-rayons" placeholder="ex. Fromages"></label>
   <datalist id="dl-rayons"><option value="Fromages"><option value="Yaourts & desserts"><option value="Lait, beurre, crème & œufs"><option value="Viandes & poissons"><option value="Charcuterie"><option value="Plats préparés"><option value="Fruits & légumes"><option value="Pâtes, riz & féculents"><option value="Sauces & condiments"><option value="Épices & aides"><option value="Petit-déjeuner & sucré"><option value="Pain"><option value="Apéritif & bonbons"><option value="Bières"><option value="Vins & alcools"><option value="Softs & eaux"><option value="Hygiène & entretien"><option value="Divers"></datalist>
   <label>Nom exact sur le drive Intermarché (optionnel)<input id="pDrive" placeholder="ex. Lait demi-écrémé Candia 6x1L"></label>
@@ -384,7 +390,7 @@ async function loadProducts() {
   const ps = PRODUCTS.filter(p => !t || (p.name + ' ' + p.brand).toLowerCase().includes(t));
   $('#products').innerHTML = ps.map(p => `<div class="item" onclick="openProd('${p.id}')">${thumb(p)}
     <div class="mid"><div class="name">${esc(p.name)}</div><div class="sub">${esc(p.brand || '')} <span class="tag">${ZL[p.zone] || p.zone}</span>
-    ${p.min_qty ? `<span class="tag g">min ${nb(p.min_qty)}</span>` : ''}${p.drive_name || p.drive_url ? '<span class="tag b">drive</span>' : ''}</div></div>
+    ${p.essential ? '<span class="tag g">★ de base</span>' : ''}${p.min_qty ? `<span class="tag g">min ${nb(p.min_qty)}</span>` : ''}${p.drive_name || p.drive_url ? '<span class="tag b">drive</span>' : ''}</div></div>
     <div class="qty">${nb(p.stock)}</div></div>`).join('') || '<div class="empty">Aucun produit pour l\'instant. Scanne ou ajoute un produit.</div>';
 }
 
@@ -460,8 +466,13 @@ function renderShop() {
         ${i.stock !== null ? `<span>en stock : ${nb(i.stock)}</span>` : ''} <a href="${esc(i.drive_url)}" target="_blank" rel="noopener">Intermarché ↗</a></div></div>
       <button class="ib" onclick="qtyItem('${i.id}',${i.qty - 1})">−</button><div class="qty">${nb(i.qty)}</div><button class="ib" onclick="qtyItem('${i.id}',${i.qty + 1})">+</button></div>`).join('')
     || '<div class="empty">La liste est vide 🎉</div>';
-  $('#sugg').innerHTML = OV.suggestions.length ? `<h2>Suggestions</h2><div class="chips">${OV.suggestions.map(s =>
-    `<button class="chip" onclick="suggest('${s.product_id}')"><b>+</b> ${esc(s.name)} <small>· ${s.reason}</small></button>`).join('')}</div>` : '';
+  $('#nsugg').textContent = OV.suggestions.length || '';
+  $('#sugg').innerHTML = OV.suggestions.map(s => `<div class="item compact">${thumb(s)}
+      <div class="mid"><div class="name">${esc(s.name)}</div><div class="sub">${esc(s.reason)}</div></div>
+      <button class="btn small" onclick="suggest('${s.product_id}')">+ Liste</button>
+      <button class="btn small light" title="Produit de base : toujours le racheter" onclick="act(()=>api('product/save',{id:'${s.product_id}',essential:true}),'Produit de base : ajouté à la liste')">★ Toujours</button>
+      <button class="btn small light" title="Ne pas racheter pour l'instant" onclick="act(()=>api('suggest/dismiss',{product_id:'${s.product_id}'}),'Ignoré')">Ignorer</button></div>`).join('')
+    || '<div class="empty">Aucune suggestion pour le moment.</div>';
 }
 function addItem() { const n = $('#newItem').value.trim(); if (!n) return; $('#newItem').value = ''; act(() => api('shopping/add', {name: n}), 'Ajouté à la liste'); }
 $('#newItem').onkeydown = e => { if (e.key === 'Enter') addItem(); };
@@ -488,6 +499,9 @@ function doReceive() {
   act(() => api('order/receive', {id: ORDER.id, items}), 'Rangé dans le stock 👍');
 }
 
+for (const b of document.querySelectorAll('#ctabs button')) b.onclick = () => {
+  for (const x of document.querySelectorAll('#ctabs button')) x.classList.toggle('on', x === b);
+  $('#c-list').classList.toggle('hide', b.dataset.c !== 'list'); $('#c-sugg').classList.toggle('hide', b.dataset.c !== 'sugg'); };
 // ------------------------------------------------ vérifier
 function renderCheck() {
   $('#exp').innerHTML = OV.expiring.map(x => `<div class="item"><div class="mid"><div class="name">${esc(x.name)}</div>
@@ -511,7 +525,7 @@ async function openProd(id) {
   PROD = PRODUCTS.find(p => p.id === id); if (!PROD) return;
   $('#pName').value = PROD.name; $('#pBrand').value = PROD.brand || ''; $('#pZone').value = PROD.zone;
   $('#pMin').value = PROD.min_qty || 0; $('#pOpen').value = PROD.open_days || 0; $('#pKeep').value = PROD.keep_days || 0;
-  $('#pUnits').value = PROD.units || 1; $('#pScanOut').value = PROD.scan_out || 'unit'; $('#pRayon').value = PROD.rayon || '';
+  $('#pEss').checked = !!PROD.essential; $('#pUnits').value = PROD.units || 1; $('#pScanOut').value = PROD.scan_out || 'unit'; $('#pRayon').value = PROD.rayon || '';
   $('#pDrive').value = PROD.drive_name || ''; $('#pUrl').value = PROD.drive_url || ''; $('#pCode').value = '';
   $('#pCodes').textContent = PROD.barcodes.length ? 'Codes-barres : ' + PROD.barcodes.join(', ') : 'Aucun code-barres';
   $('#pMerge').innerHTML = '<option value="">— garder comme produit à part —</option>' + PRODUCTS.filter(p => p.id !== id).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
@@ -524,7 +538,7 @@ function saveProd() {
   if (into) return act(() => api('product/merge', {from: PROD.id, into}), 'Produits fusionnés');
   act(() => api('product/save', {id: PROD.id, name: $('#pName').value, brand: $('#pBrand').value, zone: $('#pZone').value,
     min_qty: $('#pMin').value, open_days: $('#pOpen').value, keep_days: $('#pKeep').value, drive_name: $('#pDrive').value,
-    drive_url: $('#pUrl').value, add_barcode: $('#pCode').value, units: $('#pUnits').value, scan_out: $('#pScanOut').value,
+    drive_url: $('#pUrl').value, add_barcode: $('#pCode').value, units: $('#pUnits').value, scan_out: $('#pScanOut').value, essential: $('#pEss').checked,
     rayon: $('#pRayon').value}), 'Fiche enregistrée');
 }
 function delProd() { if (!confirm('Supprimer ce produit et son stock ?')) return; dProd.close(); act(() => api('product/delete', {id: PROD.id}), 'Supprimé'); }
@@ -532,7 +546,7 @@ function delProd() { if (!confirm('Supprimer ce produit et son stock ?')) return
 // ------------------------------------------------ réglages
 async function loadSettings() {
   const s = await api('settings');
-  for (const el of $('#setForm').querySelectorAll('[name]')) el.value = s[el.name] ?? '';
+  for (const el of $('#setForm').querySelectorAll('[name]')) el.value = String(s[el.name] ?? '');
   $('#scanTok').textContent = s.scan_token || '(à définir dans la configuration de l’extension)';
   $('#scanUrl').textContent = `http://<adresse de Home Assistant>:8098/scan`;
   const h = await api('history');
