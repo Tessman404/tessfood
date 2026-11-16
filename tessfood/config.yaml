@@ -1,5 +1,5 @@
 name: Tessfood
-version: "1.5.7"
+version: "1.6.0"
 slug: tessfood
 description: Stock du frigo et des placards, liste de courses Alexa et drive Intermarché
 arch: [aarch64, amd64]
@@ -18,6 +18,10 @@ ports_description:
 options:
   scan_token: ""
   anthropic_api_key: ""
+  routine_id: "trig_01Xd5uPrC6vmHDEVuav3CM2i"
+  routine_token: ""
 schema:
   scan_token: password
   anthropic_api_key: password
+  routine_id: str
+  routine_token: password

@@ -218,9 +218,10 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
     <div id="shop" class="list"></div>
     <h2>Drive Intermarché</h2>
     <div class="box">
-      <p>Claude peut remplir ton panier Intermarché avec cette liste. C'est toi qui valides et qui paies.</p>
+      <p>Claude remplit ton panier Intermarché avec cette liste, dans ton Chrome. C'est toi qui valides et qui paies.</p>
       <div class="row">
-        <button class="btn" onclick="copyClaude()">Copier la demande pour Claude</button>
+        <button class="btn" onclick="sendClaude()">🛒 Remplir mon panier avec Claude</button>
+        <button class="btn light" onclick="copyClaude()">Copier la demande</button>
         <button class="btn light" onclick="createOrder()">Commande passée</button>
         <button class="btn light" onclick="syncAlexa()">Synchroniser Alexa</button>
       </div>
@@ -578,6 +579,12 @@ const qtyItem = (id, q) => q <= 0 ? doneItem(id) : act(() => api('shopping/updat
 const syncAlexa = () => act(async () => toast((await api('alexa/sync', {})).message));
 const createOrder = () => act(() => api('order/create', {}), 'Commande notée. Clique « Courses récupérées » au retour.');
 const cancelOrder = id => act(() => api('order/cancel', {id}), 'Commande annulée');
+async function sendClaude() {
+  if (!confirm('Claude va remplir ton panier Intermarché dans Chrome (sans valider ni payer). On y va ?')) return;
+  toast('Claude est réveillé…');
+  try { const r = await api('claude/cart', {}); toast(r.ok ? '✓ ' + r.message : '⚠️ ' + r.message); }
+  catch (e) { toast('⚠️ ' + e.message); }
+}
 async function copyClaude() {
   const t = (await api('claude')).text;
   try { await navigator.clipboard.writeText(t); toast('Copié : colle-le dans Claude'); }

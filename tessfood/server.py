@@ -730,6 +730,33 @@ def claude_text(d):
             "Ne valide PAS la commande et ne paie pas : je vérifie et je valide moi-même.\n\n" + "\n".join(lines))
 
 
+# ---------------------------------------------------------------- tâche Claude (remplir le panier sans copier-coller)
+ROUTINE_FIRE_URL = "https://api.anthropic.com/v1/claude_code/routines/{rid}/fire"
+FIRE_ERRORS = {400: "la tâche Claude est en pause ou la demande est refusée", 401: "jeton de la tâche Claude refusé (génère-en un nouveau)",
+               403: "ton compte n'autorise pas ce déclenchement", 404: "tâche Claude introuvable (vérifie son identifiant)",
+               429: "trop de lancements : réessaie dans un moment", 500: "erreur côté Claude : réessaie", 503: "Claude est surchargé : réessaie"}
+
+
+def fire_routine(text):
+    rid, token = os.environ.get("ROUTINE_ID", "").strip(), os.environ.get("ROUTINE_TOKEN", "").strip()
+    if not rid or not token:
+        return {"ok": False, "manual": True,
+                "message": "Colle le jeton de la tâche Claude dans la configuration de l'extension (routine_token)."}
+    req = urllib.request.Request(ROUTINE_FIRE_URL.format(rid=urllib.parse.quote(rid, safe="")), method="POST",
+                                 data=json.dumps({"text": text}).encode("utf-8"),
+                                 headers={"Authorization": f"Bearer {token}", "anthropic-version": "2026-10-21",
+                                          "Content-Type": "application/json", "User-Agent": "Tessfood"})
+    try:
+        with urllib.request.urlopen(req, timeout=25) as r:
+            res = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as err:
+        return {"ok": False, "message": FIRE_ERRORS.get(err.code, "erreur") + f" (code {err.code})"}
+    except Exception as e:
+        return {"ok": False, "message": f"connexion impossible ({str(e)[:60]})"}
+    return {"ok": True, "session_url": res.get("claude_code_session_url"),
+            "message": "Claude remplit ton panier Intermarché dans Chrome. Tu recevras un résumé sur ton téléphone."}
+
+
 # ---------------------------------------------------------------- commandes drive
 def order_create(d):
     items, _ = shopping_view(d)
@@ -1039,7 +1066,8 @@ def api(method, path, q, body):
                 ps = sorted(d["products"].values(), key=lambda p: norm(p["name"]))
                 return [dict(p, stock=stock_qty(d, p["id"]), units=units_of(p), rayon=rayon_of(p)) for p in ps]
             if path == "/api/settings":
-                return dict(d["settings"], scan_token=SCAN_TOKEN, ha=ha_ok())
+                return dict(d["settings"], scan_token=SCAN_TOKEN, ha=ha_ok(),
+                            routine=bool(os.environ.get("ROUTINE_ID") and os.environ.get("ROUTINE_TOKEN")))
             if path == "/api/history":
                 ms = d["moves"][-150:][::-1]
                 return [dict(m, name=d["products"].get(m["product_id"], {}).get("name", "?")) for m in ms]
@@ -1278,7 +1306,7 @@ def api(method, path, q, body):
             save_db(d)
             sync_alexa_soon()
             return {"ok": True}
-        elif path in ("/api/alexa/sync", "/api/recipes/generate"):
+        elif path in ("/api/alexa/sync", "/api/recipes/generate", "/api/claude/cart", "/api/claude/test"):
             pass
         elif path == "/api/test-notify":
             pass
@@ -1297,6 +1325,22 @@ def api(method, path, q, body):
         return generate_recipes(body)
     if path == "/api/alexa/sync":
         return sync_alexa()
+    if path == "/api/claude/cart":
+        with LOCK:
+            d = load_db()
+            items, _ = shopping_view(d)
+            text = claude_text(d)
+        if not items:
+            return {"ok": False, "message": "La liste de courses est vide."}
+        res = fire_routine(text)
+        if res.get("ok"):
+            with LOCK:
+                d = load_db()
+                d["state"]["last_cart"] = {"ts": now().isoformat(timespec="seconds"), "url": res.get("session_url")}
+                save_db(d)
+        return res
+    if path == "/api/claude/test":
+        return fire_routine("TEST DE LIAISON depuis Tessfood, ce n'est pas une vraie demande.")
     if path == "/api/test-notify":
         return {"ok": notify("Tessfood", "Test : les notifications fonctionnent 👍")}
 
