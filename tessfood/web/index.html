@@ -78,6 +78,9 @@ dialog h3{margin:0}
 .hist div{padding:4px 0;border-bottom:1px solid var(--line)}
 code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .hide{display:none!important}
+#scanned .item{flex-wrap:wrap}
+#scanned .item .mid{flex:1 1 60%}
+#scanned .item .name{white-space:normal}
 .back{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-weight:700;color:var(--green)}
 .zchips{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px}
 .zchips button{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-weight:600;font-size:.9rem;white-space:nowrap}
@@ -110,7 +113,9 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .seg button.on{background:var(--green);color:#fff}
 .seg button.on.r{background:var(--tomato)}
 #reader{width:100%;border-radius:14px;overflow:hidden;background:#000;min-height:0}
+#reader{position:relative}
 #reader video{width:100%!important;border-radius:14px}
+#reader .aim{position:absolute;left:6%;right:6%;top:32%;bottom:32%;border:3px solid rgba(255,255,255,.85);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.25);pointer-events:none}
 .choice{display:grid;gap:8px}
 .choice button{padding:14px;border-radius:12px;background:#f1ece1;font-weight:700;text-align:left}
 .choice button span{display:block;font-weight:500;font-size:.85rem;color:var(--ink2)}
@@ -152,7 +157,10 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   .fab svg{width:26px;height:26px}
   .rgrid{grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px}
   dialog{width:min(720px,90vw)}
-  #dScan{width:min(900px,92vw)}
+  #dScan{width:min(1100px,94vw)}
+  #dScan .in{grid-template-columns:1.3fr 1fr;align-items:start}
+  #dScan .in>*{grid-column:1}
+  #dScan #scanned{grid-column:2;grid-row:2/9;max-height:70vh;overflow:auto}
   #reader{max-height:55vh}
   .seg button{padding:14px 6px;font-size:1.05rem}
   .choice button{padding:18px;font-size:1.1rem}
@@ -280,6 +288,8 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <h3>Scanner un produit</h3>
   <div class="seg" id="smode"><button data-m="consume" class="on r">Sortir</button><button data-m="add">Ajouter</button><button data-m="open">Ouvert</button><button data-m="waste">Jeté</button></div>
   <div id="reader"></div>
+  <p class="hist" style="margin:0">Passe les produits les uns après les autres devant la caméra : chacun est pris en compte tout seul.</p>
+  <div id="scanned" class="list"></div>
   <div class="row"><button class="btn light" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
   <label>Sans code-barres : tape le nom<input id="sq" placeholder="ex. tomates, restes de poulet…" autocomplete="off"></label>
   <div id="sres" class="list"></div>
@@ -641,21 +651,47 @@ for (const b of document.querySelectorAll('#smode button')) b.onclick = () => {
 function loadLib() {
   if (window.Html5Qrcode) return Promise.resolve();
   return new Promise((ok, ko) => { const sc = document.createElement('script');
-    sc.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js'; sc.onload = ok; sc.onerror = () => ko(new Error('lecteur de code-barres non chargé')); document.head.appendChild(sc); });
+    sc.src = 'lib.js'; sc.onload = ok; sc.onerror = () => ko(new Error('lecteur de code-barres non chargé')); document.head.appendChild(sc); });
 }
 const FORMATS = () => [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A,
   Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.QR_CODE];
+let NATIVE = null;
 async function openScan() {
-  dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = '';
+  dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = ''; SCANNED = []; renderScanned(); BUSY = false;
+  const cam = {facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080}, advanced: [{focusMode: 'continuous'}]};
+  // 1) détecteur intégré au navigateur (Chrome / Android) : le plus rapide et le plus fiable
+  try {
+    if ('BarcodeDetector' in window) {
+      const fmts = (await BarcodeDetector.getSupportedFormats()).filter(f => ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'qr_code'].includes(f));
+      if (fmts.length) {
+        const det = new BarcodeDetector({formats: fmts});
+        const stream = await navigator.mediaDevices.getUserMedia({video: cam, audio: false});
+        $('#reader').innerHTML = '<video playsinline muted autoplay style="width:100%;display:block"></video><div class="aim"></div>';
+        const v = $('#reader video'); v.srcObject = stream; await v.play();
+        NATIVE = {stream, on: true};
+        const loop = async () => {
+          if (!NATIVE || !NATIVE.on) return;
+          try { const r = await det.detect(v); if (r.length) onCode(r[0].rawValue); } catch {}
+          setTimeout(loop, 120);
+        };
+        loop();
+        return;
+      }
+    }
+  } catch (e) { stopNative(); }
+  // 2) sinon (iPad / iPhone) : lecteur html5-qrcode réglé pour les codes-barres
   try {
     await loadLib();
-    QR = new Html5Qrcode('reader', {formatsToSupport: FORMATS(), verbose: false});
-    await QR.start({facingMode: 'environment'}, {fps: 10, qrbox: (w, h) => ({width: Math.min(w * 0.85, 360), height: Math.min(h * 0.5, 160)})},
+    QR = new Html5Qrcode('reader', {formatsToSupport: FORMATS(), verbose: false, experimentalFeatures: {useBarCodeDetectorIfSupported: true}});
+    await QR.start({facingMode: 'environment'}, {fps: 15, aspectRatio: 1.7777,
+      videoConstraints: cam,
+      qrbox: (w, h) => ({width: Math.round(w * 0.9), height: Math.round(Math.min(h * 0.45, w * 0.4))})},
       code => onCode(code), () => {});
   } catch (e) { $('#reader').innerHTML = `<p class="hist" style="padding:10px;color:#fff">Caméra indisponible ici (${esc(e.message || e)}). Utilise « Prendre une photo du code ».</p>`; }
 }
-async function closeScan() { try { if (QR) { await QR.stop(); QR.clear(); } } catch {} QR = null; dScan.close(); load(); }
-dScan.addEventListener('close', () => { try { if (QR) { QR.stop().then(() => QR.clear()).catch(() => {}); } } catch {} QR = null; });
+function stopNative() { if (NATIVE) { NATIVE.on = false; NATIVE.stream.getTracks().forEach(t => t.stop()); NATIVE = null; } }
+async function closeScan() { stopNative(); try { if (QR) { await QR.stop(); QR.clear(); } } catch {} QR = null; dScan.close(); load(); }
+dScan.addEventListener('close', () => { stopNative(); try { if (QR) { QR.stop().then(() => QR.clear()).catch(() => {}); } } catch {} QR = null; });
 function photoScan() { $('#photoIn').value = ''; $('#photoIn').click(); }
 $('#photoIn').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
@@ -664,13 +700,15 @@ $('#photoIn').onchange = async e => {
   catch { toast('Code-barres illisible sur la photo, réessaie de plus près'); }
 };
 async function onCode(code) {
-  if (BUSY || (code === LAST.code && Date.now() - LAST.t < 3000)) return;
+  if (BUSY || (code === LAST.code && Date.now() - LAST.t < 2500)) return;
   LAST = {code, t: Date.now()}; BUSY = true;
   try { if (navigator.vibrate) navigator.vibrate(80); } catch {}
+  try { const C = new (window.AudioContext || window.webkitAudioContext)(), o = C.createOscillator(); o.frequency.value = 1500; o.connect(C.destination); o.start(); o.stop(C.currentTime + .08); } catch {}
+  const aim = $('#reader .aim'); if (aim) { aim.style.borderColor = '#22c55e'; setTimeout(() => aim.style.borderColor = '', 600); }
   try {
     const info = await api('lookup?code=' + encodeURIComponent(code));
-    if (info.known && (SMODE === 'consume' || SMODE === 'waste')) askAmount(info, code);
-    else { await doScan(code, null); }
+    const r = await api('scan', {code, mode: SMODE, source: 'camera'});
+    addScanned(r, info);
   } catch (e) { toast('⚠️ ' + e.message); BUSY = false; }
 }
 function askAmount(info, code) {
@@ -692,6 +730,38 @@ async function doScan(code, amount) {
   try { const r = await api('scan', {code, mode: SMODE, amount, source: 'camera'}); toast(r.message, true); }
   catch (e) { toast('⚠️ ' + e.message); }
   BUSY = false;
+}
+let SCANNED = [];
+function addScanned(r, info) {
+  BUSY = false;
+  if (!r.ok) { toast('⚠️ ' + r.message); return; }
+  if (!r.product_id) { toast(r.message); return; }  // carte de mode
+  SCANNED.unshift({id: Date.now(), pid: r.product_id, name: r.product, mode: r.mode, units: r.units || 1, left: r.left_text,
+                   img: info && info.image, isNew: r.new, warn: r.warning});
+  SCANNED = SCANNED.slice(0, 12);
+  renderScanned();
+}
+function renderScanned() {
+  const V = {consume: 'sorti', add: 'ajouté', open: 'ouvert', waste: 'jeté'};
+  $('#scanned').innerHTML = SCANNED.map(x => `<div class="item compact">${thumb({image: x.img, name: x.name})}
+    <div class="mid"><div class="name">${esc(x.name)}</div><div class="sub"><span class="tag ${x.mode === 'add' ? 'g' : 'r'}">${V[x.mode] || x.mode}${x.units > 1 && (x.mode === 'consume' || x.mode === 'waste') ? ' 1 unité' : ''}</span> reste ${esc(x.left)}${x.isNew ? ' · <b>nouveau produit</b>' : ''}${x.warn ? ' · ' + esc(x.warn) : ''}</div></div>
+    ${(x.mode === 'consume' || x.mode === 'waste') && x.units > 1 && !x.fixed ? `<button class="btn small light" onclick="fixScan(${x.id},'pack')">Paquet entier</button>` : ''}
+    ${(x.mode === 'consume' || x.mode === 'waste') && !x.fixed ? `<button class="btn small light" onclick="fixScan(${x.id},'all')">Plus du tout</button>` : ''}
+    ${!x.fixed ? `<button class="btn small light" onclick="fixScan(${x.id},'undo')">Annuler</button>` : `<span class="tag">${esc(x.fixed)}</span>`}</div>`).join('');
+}
+async function fixScan(id, what) {
+  const x = SCANNED.find(s => s.id === id); if (!x) return;
+  const kind = x.mode === 'waste' ? 'waste' : 'consume';
+  try {
+    if (what === 'all') { await api('stock/take', {product_id: x.pid, all: true, kind}); x.fixed = 'plus du tout'; x.left = '0'; }
+    if (what === 'pack') { await api('stock/take', {product_id: x.pid, units: x.units - 1, kind}); x.fixed = 'paquet entier'; }
+    if (what === 'undo') {
+      if (x.mode === 'add') await api('stock/take', x.units > 1 ? {product_id: x.pid, qty: 1} : {product_id: x.pid, qty: 1});
+      else if (x.mode === 'consume' || x.mode === 'waste') await api('stock/add', x.units > 1 ? {product_id: x.pid, units: 1} : {product_id: x.pid, qty: 1});
+      x.fixed = 'annulé';
+    }
+    renderScanned();
+  } catch (e) { toast('⚠️ ' + e.message); }
 }
 // sans code-barres : recherche par nom
 $('#sq').oninput = async () => {

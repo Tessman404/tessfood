@@ -1350,6 +1350,9 @@ class Handler(BaseHTTPRequestHandler):
             if method == "GET" and path in ("/", "/index.html"):
                 with open(os.path.join(BASE, "web", "index.html"), "rb") as f:
                     return self._send(200, f.read(), "text/html; charset=utf-8")
+            if method == "GET" and path == "/lib.js":
+                with open(os.path.join(BASE, "web", "html5-qrcode.min.js"), "rb") as f:
+                    return self._send(200, f.read(), "application/javascript; charset=utf-8")
             if method == "GET" and path == "/cartes":
                 with open(os.path.join(BASE, "web", "cartes.html"), "rb") as f:
                     return self._send(200, f.read(), "text/html; charset=utf-8")
