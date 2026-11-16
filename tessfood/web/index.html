@@ -316,10 +316,21 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <button class="btn light" onclick="dChoice.close()">Annuler</button>
 </form></dialog>
 
+<!-- J'ai cuisiné : on demande d'abord -->
+<dialog id="dCookAsk"><form class="in" method="dialog" onsubmit="return false">
+  <h3>Bon appétit ! 🍽️</h3>
+  <p>As-tu pensé à sortir du stock les produits utilisés pour cette recette ?</p>
+  <div class="choice">
+    <button class="main" onclick="dCookAsk.close();toast('Parfait, rien de plus à faire')">Oui, c'est déjà fait<span>avec le scanner ou les boutons −</span></button>
+    <button onclick="dCookAsk.close();openCookList()">Non, les sortir maintenant<span>je coche ce que j'ai utilisé</span></button>
+    <button onclick="dCookAsk.close()">Plus tard<span>je le ferai moi-même</span></button>
+  </div>
+</form></dialog>
+
 <!-- J'ai cuisiné -->
 <dialog id="dCook"><form class="in" method="dialog" onsubmit="return false">
   <h3 id="kTitle"></h3>
-  <p class="hist">Coche ce que tu as utilisé et combien (en unités). Tout sera sorti du stock.</p>
+  <p class="hist">Coche seulement ce que tu as utilisé et indique combien (en unités). Rien d'autre ne sera touché.</p>
   <div id="kItems" class="list"></div>
   <div class="row"><button class="btn" onclick="doCook()">Sortir du stock</button><button class="btn light" onclick="dCook.close()">Annuler</button></div>
 </form></dialog>
@@ -863,10 +874,13 @@ async function genRecipes() {
 }
 function openCook(id) {
   COOK = RECIPES.find(r => r.id === id);
+  dCookAsk.showModal();
+}
+function openCookList() {
   $('#kTitle').textContent = COOK.title;
   const seen = new Set(), rows = [];
   for (const i of COOK.ingredients) for (const st of i.stock.slice(0, 1)) { if (seen.has(st.product_id)) continue; seen.add(st.product_id);
-    rows.push(`<div class="item compact"><button class="check on" data-p="${st.product_id}" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✓':''">✓</button>
+    rows.push(`<div class="item compact"><button class="check" data-p="${st.product_id}" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✓':''"></button>
       <div class="mid"><div class="name">${esc(st.name)}</div><div class="sub">${esc(i.qty || '')} · en stock : ${nb(st.left)}${st.units > 1 ? ' unité(s)' : ''}</div></div>
       <input type="number" min="0" step="1" value="1" style="width:64px" data-u="${st.product_id}"></div>`); }
   $('#kItems').innerHTML = rows.join('') || '<div class="empty">Aucun produit du stock trouvé pour cette recette.</div>';
@@ -875,7 +889,8 @@ function openCook(id) {
 function doCook() {
   const items = [...document.querySelectorAll('#kItems .check.on')].map(b => ({product_id: b.dataset.p, units: +document.querySelector(`[data-u="${b.dataset.p}"]`).value || 0})).filter(x => x.units > 0);
   dCook.close();
-  act(() => api('recipes/cook', {items}), 'Bon appétit ! Stock mis à jour').then(loadRecipes);
+  if (!items.length) return toast('Rien de coché : le stock n’a pas bougé');
+  act(() => api('recipes/cook', {items}), items.length + ' produit(s) sorti(s) du stock').then(loadRecipes);
 }
 
 function backHA() {
