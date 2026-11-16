@@ -78,6 +78,11 @@ dialog h3{margin:0}
 .hist div{padding:4px 0;border-bottom:1px solid var(--line)}
 code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .hide{display:none!important}
+.cartbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.btn.big{padding:14px 20px;font-size:1.05rem;background:var(--tomato)}
+.cgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:14px;align-items:start}
+.cgrid .col>h2{margin:6px 4px 10px}
+@media (max-width:760px){.cgrid{grid-template-columns:1fr}}
 .sconf{border-radius:14px;padding:14px 16px;font-size:1.1rem;font-weight:700;display:flex;gap:12px;align-items:center;background:#dcfce7;color:#14532d;border:2px solid #22c55e}
 .sconf img{width:56px;height:56px;object-fit:contain;border-radius:10px;background:#fff}
 .sconf small{display:block;font-weight:500;font-size:.92rem;color:#166534}
@@ -207,25 +212,27 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 
   <!-- COURSES -->
   <section id="t-courses" class="hide">
-    <div class="zchips" id="ctabs"><button class="on" data-c="list">Ma liste</button><button data-c="sugg">Suggestions <small id="nsugg"></small></button></div>
-    <div id="c-sugg" class="hide"><p class="hist">Seuls les <b>produits de base ★</b> partent tout seuls sur la liste. Les autres produits finis arrivent ici : à toi de choisir. « ★ Toujours » en fait un produit de base.</p><div id="sugg" class="list"></div></div>
-    <div id="c-list">
-    <div class="bar">
-      <input id="newItem" placeholder="Ajouter à la liste (ex. café)" autocomplete="off" list="dl-products">
-      <button class="btn" onclick="addItem()">Ajouter</button>
+    <div class="cartbar">
+      <button class="btn big" onclick="sendClaude()">🛒 Remplir mon panier avec Claude</button>
+      <button class="btn light" onclick="createOrder()">Commande passée</button>
+      <button class="btn light" onclick="syncAlexa()">Synchroniser Alexa</button>
+      <button class="btn light" onclick="copyClaude()">Copier la demande</button>
     </div>
     <div id="orders"></div>
-    <div id="shop" class="list"></div>
-    <h2>Drive Intermarché</h2>
-    <div class="box">
-      <p>Claude remplit ton panier Intermarché avec cette liste, dans ton Chrome (ouvert sur ton Mac). Appuie sur le bouton, puis sur « Exécuter maintenant ». C'est toi qui valides et qui paies.</p>
-      <div class="row">
-        <button class="btn" onclick="sendClaude()">🛒 Remplir mon panier avec Claude</button>
-        <button class="btn light" onclick="copyClaude()">Copier la demande</button>
-        <button class="btn light" onclick="createOrder()">Commande passée</button>
-        <button class="btn light" onclick="syncAlexa()">Synchroniser Alexa</button>
+    <div class="cgrid">
+      <div class="col">
+        <h2>Ma liste <small id="nlist"></small></h2>
+        <div class="bar">
+          <input id="newItem" placeholder="Ajouter (ex. café)" autocomplete="off" list="dl-products">
+          <button class="btn" onclick="addItem()">Ajouter</button>
+        </div>
+        <div id="shop" class="list"></div>
       </div>
-    </div>
+      <div class="col">
+        <h2>Suggestions <small id="nsugg"></small></h2>
+        <p class="hist">Seuls les <b>produits de base ★</b> vont tout seuls sur la liste. Les autres finis arrivent ici. « ★ Toujours » en fait un produit de base.</p>
+        <div id="sugg" class="list"></div>
+      </div>
     </div>
   </section>
 
@@ -235,6 +242,8 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
     <div id="exp" class="list"></div>
     <h2>Sûrement finis ? <small>sortie peut-être oubliée</small></h2>
     <div id="doubt" class="list"></div>
+    <h2>Pas touchés depuis longtemps <small>pensez à les consommer</small></h2>
+    <div id="forg" class="list"></div>
     <h2>Produits à compléter <small>scannés mais inconnus</small></h2>
     <div id="unk" class="list"></div>
   </section>
@@ -464,7 +473,7 @@ async function load() {
   if (OV.orders.length) a.push(`<button onclick="go('courses')">🛒 Commande en cours</button>`);
   if (!OV.ha) a.push(`<button class="a">Hors Home Assistant (test)</button>`);
   $('#alerts').innerHTML = a.join('');
-  const nc = OV.expiring.length + OV.doubtful.length + OV.unknown.length;
+  const nc = OV.expiring.length + OV.doubtful.length + OV.unknown.length + OV.forgotten.length;
   badge('#b-check', nc); badge('#b-courses', OV.shopping.length);
   renderStock(); renderShop(); renderCheck();
   if (TAB === 'products') loadProducts();
@@ -485,7 +494,7 @@ async function loadProducts() {
 
 // ------------------------------------------------ stock
 function qtyHtml(x) {
-  if (x.units > 1) return `${nb(x.units_left)}<small>/${x.units}</small>`;
+  if (x.units > 1) return `${x.units_left}<small>sur ${x.units}</small>`;
   return nb(x.qty);
 }
 function itemHtml(x, z) {
@@ -563,7 +572,7 @@ function renderShop() {
         ${i.stock !== null ? `<span>en stock : ${nb(i.stock)}</span>` : ''} <a href="${esc(i.drive_url)}" target="_blank" rel="noopener">Intermarché ↗</a></div></div>
       <button class="ib" onclick="qtyItem('${i.id}',${i.qty - 1})">−</button><div class="qty">${nb(i.qty)}</div><button class="ib" onclick="qtyItem('${i.id}',${i.qty + 1})">+</button></div>`).join('')
     || '<div class="empty">La liste est vide 🎉</div>';
-  $('#nsugg').textContent = OV.suggestions.length || '';
+  $('#nsugg').textContent = OV.suggestions.length || ''; $('#nlist').textContent = OV.shopping.length || '';
   $('#sugg').innerHTML = OV.suggestions.map(s => `<div class="item compact">${thumb(s)}
       <div class="mid"><div class="name">${esc(s.name)}</div><div class="sub">${esc(s.reason)}</div></div>
       <button class="btn small" onclick="suggest('${s.product_id}')">+ Liste</button>
@@ -611,9 +620,6 @@ function doReceive() {
   act(() => api('order/receive', {id: ORDER.id, items}), 'Rangé dans le stock 👍');
 }
 
-for (const b of document.querySelectorAll('#ctabs button')) b.onclick = () => {
-  for (const x of document.querySelectorAll('#ctabs button')) x.classList.toggle('on', x === b);
-  $('#c-list').classList.toggle('hide', b.dataset.c !== 'list'); $('#c-sugg').classList.toggle('hide', b.dataset.c !== 'sugg'); };
 // ------------------------------------------------ vérifier
 function renderCheck() {
   $('#exp').innerHTML = OV.expiring.map(x => `<div class="item"><div class="mid"><div class="name">${esc(x.name)}</div>
@@ -626,6 +632,12 @@ function renderCheck() {
       <button class="btn small light" onclick="act(()=>api('check',{product_id:'${x.product_id}',still:true}),'Noté')">Encore là</button>
       <button class="btn small" onclick="act(()=>api('check',{product_id:'${x.product_id}',still:false}),'Retiré du stock')">Fini</button></div>`).join('')
     || '<div class="empty">Tout semble à jour.</div>';
+  $('#forg').innerHTML = OV.forgotten.map(x => `<div class="item compact">${thumb(x)}<div class="mid"><div class="name">${esc(x.name)}</div>
+      <div class="sub">${ZL[x.zone] || x.zone} · rien depuis le ${x.since} (${x.days} j)</div></div>
+      <button class="btn small light" onclick="act(()=>api('check',{product_id:'${x.product_id}',still:true}),'Noté, on le garde')">On le garde</button>
+      <button class="btn small" onclick="act(()=>api('check',{product_id:'${x.product_id}',still:false}),'Retiré du stock')">Consommé</button>
+      <button class="btn small red" onclick="act(()=>api('stock/take',{product_id:'${x.product_id}',all:true,kind:'waste'}),'Noté comme jeté')">Jeté</button></div>`).join('')
+    || '<div class="empty">Rien d’oublié.</div>';
   $('#unk').innerHTML = OV.unknown.map(u => `<div class="item" onclick="openProd('${u.product_id}')"><div class="mid"><div class="name">${esc(u.name)}</div>
       <div class="sub">code ${esc(u.code)} · touche pour lui donner un nom</div></div></div>`).join('')
     || '<div class="empty">Aucun.</div>';

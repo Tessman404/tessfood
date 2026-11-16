@@ -121,6 +121,12 @@ def load_db():
     d.setdefault("unknown", [])
     d.setdefault("checks", {})       # product_id -> date de la dernière confirmation « encore là »
     d.setdefault("state", {})
+    for x in d["stock"]:  # quantités en unités entières pour les paquets (ex. 9,1/12 -> 9/12)
+        pr = d["products"].get(x["product_id"])
+        u = units_of(pr) if pr else 1
+        if u > 1:
+            x["qty"] = round(round(x["qty"] * u) / u, 6)
+    d["stock"] = [x for x in d["stock"] if x["qty"] > 1e-4]
     for x in d["stock"]:
         if x.get("zone") == "congelateur" and x.get("est"):
             x["expiry"], x["est"] = None, False
@@ -383,7 +389,7 @@ def add_stock(d, p, qty=1, zone=None, expiry=None, source="app", kind="add"):
     zone = zone or p.get("zone") or "placard"
     for s in d["stock"]:  # on regroupe avec une ligne identique (même zone, même date, non ouverte)
         if s["product_id"] == p["id"] and s["zone"] == zone and s.get("expiry") == iso(exp) and not s.get("opened"):
-            s["qty"] = round(s["qty"] + qty, 2)
+            s["qty"] = round(s["qty"] + qty, 6)
             break
     else:
         d["stock"].append({"id": new_id(), "product_id": p["id"], "qty": qty, "zone": zone, "expiry": iso(exp),
@@ -407,9 +413,9 @@ def take_stock(d, p, qty=1, kind="consume", source="app"):
         if left <= 0:
             break
         t = min(s["qty"], left)
-        s["qty"] = round(s["qty"] - t, 2)
-        left = round(left - t, 2)
-    d["stock"] = [s for s in d["stock"] if s["qty"] > 0]
+        s["qty"] = round(s["qty"] - t, 6)
+        left = round(left - t, 6)
+    d["stock"] = [s for s in d["stock"] if s["qty"] > 1e-4]
     add_move(d, p["id"], -qty, kind, source)
     return left > 0  # True = il n'y en avait pas assez d'après l'appli
 
@@ -481,6 +487,10 @@ def scan(code, source="scanner", default_mode="consume", amount=None):
             d = load_db()
             st = d["state"]
             p = product_by_code(d, code)
+            if not p and info and info.get("name"):
+                p = similar_in_stock(d, info["name"])
+                if p:  # ex. une brique de crème vendue en pack : on rattache ce code au produit déjà en stock
+                    p["barcodes"].append(code)
             if not p:
                 p = make_product(d, info["name"] if info and info["name"] else f"Produit inconnu {code}", code, info)
                 created = True
@@ -503,7 +513,7 @@ def scan(code, source="scanner", default_mode="consume", amount=None):
                 warn = "il n'était pas dans le stock, je l'ai ajouté"
         else:
             q = stock_qty(d, p["id"]) if amount == "all" else step
-            if q <= 0 or take_stock(d, p, round(q, 4), "waste" if mode == "waste" else "consume", source):
+            if q <= 0 or take_stock(d, p, round(q, 6), "waste" if mode == "waste" else "consume", source):
                 warn = "il n'était pas dans le stock"
             check_min(d, p)
         if mode != "consume":
@@ -590,6 +600,31 @@ def doubtful(d):
     return out
 
 
+FORGOTTEN_DAYS = {"frigo": 21, "congelateur": 90, "placard": 120, "cellier": 180, "maison": 180}
+
+
+def forgotten(d):
+    """Produits en stock auxquels personne n'a touché depuis longtemps (même sans date de péremption)."""
+    last = {}
+    for m in d["moves"]:
+        last[m["product_id"]] = m["ts"][:10]
+    out = []
+    for s_ in d["stock"]:
+        p = d["products"].get(s_["product_id"])
+        if not p:
+            continue
+        ref = max(filter(None, [last.get(p["id"]), s_.get("added"), d["checks"].get(p["id"])]), default=None)
+        dref = parse_date(ref)
+        if not dref:
+            continue
+        days = (today() - dref).days
+        lim = FORGOTTEN_DAYS.get(s_["zone"], 120)
+        if days >= lim and not any(x["product_id"] == p["id"] for x in out):
+            out.append({"product_id": p["id"], "name": p["name"], "zone": s_["zone"], "days": days, "image": p.get("image", ""),
+                        "since": dref.strftime("%d/%m/%Y")})
+    return sorted(out, key=lambda x: -x["days"])
+
+
 def expiring(d, days=None):
     days = d["settings"]["expiry_warn_days"] if days is None else days
     lim = today() + dt.timedelta(days=int(days))
@@ -639,6 +674,21 @@ def match_in_stock(d, name, pid=None):
     last = {m["product_id"]: m["ts"] for m in d["moves"]}
     cands.sort(key=lambda p: (len(norm(p["name"])), "" if p["id"] not in last else "0" + last[p["id"]]))
     return cands[0]
+
+
+def similar_in_stock(d, name):
+    words = {w for w in norm(name).split() if len(w) > 2}
+    best, score = None, 0
+    for p in d["products"].values():
+        if stock_qty(d, p["id"]) <= 0:
+            continue
+        pw = {w for w in norm(p["name"]).split() if len(w) > 2}
+        if not pw or not words:
+            continue
+        sc = len(words & pw) / min(len(words), len(pw))
+        if sc > score:
+            best, score = p, sc
+    return best if score >= 0.75 else None
 
 
 def finished_from_list(d, item):
@@ -969,7 +1019,7 @@ def overview(d):
             "stock_id": s["id"], "product_id": p["id"], "name": p["name"], "brand": p.get("brand", ""),
             "image": p.get("image", ""), "qty": s["qty"], "expiry": s.get("expiry"), "opened": s.get("opened"), "est": s.get("est", False),
             "days": (e - today()).days if e else None, "min_qty": p.get("min_qty", 0), "rayon": rayon_of(p),
-            "units": units_of(p), "units_left": round(s["qty"] * units_of(p), 1)})
+            "units": units_of(p), "units_left": round(s["qty"] * units_of(p))})
     for z in zones.values():
         z.sort(key=lambda x: (x["rayon"], norm(x["name"])))
     items, sugg = shopping_view(d)
@@ -979,7 +1029,7 @@ def overview(d):
     if last:
         last = dict(last, name=d["products"].get(last["product_id"], {}).get("name", "?"))
     return {"zones": zones, "zone_labels": ZONE_LABEL, "shopping": items, "suggestions": sugg,
-            "expiring": expiring(d), "doubtful": doubtful(d), "orders": [o for o in d["orders"] if o["status"] == "ordered"],
+            "expiring": expiring(d), "doubtful": doubtful(d), "forgotten": forgotten(d), "orders": [o for o in d["orders"] if o["status"] == "ordered"],
             "unknown": [dict(u, name=d["products"].get(u["product_id"], {}).get("name", "")) for u in d["unknown"]],
             "mode": mode, "mode_label": MODE_LABEL[mode], "last_scan": last, "ha": ha_ok()}
 
@@ -1056,11 +1106,16 @@ def scheduler():
             # 3) vérification de la semaine
             if n.weekday() == int(s["check_weekday"]) and n.hour >= int(s["check_hour"]) and last_check != iso(today()):
                 last_check = iso(today())
-                db = doubtful(d)
-                if db:
-                    notify("Tessfood : petite vérification",
-                           f"{len(db)} produit(s) sûrement finis : " + ", ".join(x["name"] for x in db[:8])
-                           + ". Ouvre Tessfood pour confirmer.", "tessfood-check")
+                db, fg = doubtful(d), forgotten(d)
+                if db or fg:
+                    parts = []
+                    if db:
+                        parts.append(f"{len(db)} sûrement fini(s) : " + ", ".join(x["name"] for x in db[:5]))
+                    if fg:
+                        parts.append(f"{len(fg)} pas touché(s) depuis longtemps, pensez à les consommer : "
+                                     + ", ".join(f"{x['name']} ({x['days']} j)" for x in fg[:5]))
+                    notify("Tessfood : petite vérification", " · ".join(parts) + ". Ouvre Tessfood pour confirmer.",
+                           "tessfood-check")
             # 4) porte du frigo restée ouverte
             if s.get("door_entity") and ha_ok():
                 try:
@@ -1140,7 +1195,7 @@ def api(method, path, q, body):
                 p = product_by_name(d, name) if not body.get("force_new") else None
                 p = p if p and norm(p["name"]) == norm(name) else make_product(d, name, zone=body.get("zone"))
             qty = float(body["units"]) / units_of(p) if body.get("units") else float(body.get("qty") or 1)
-            add_stock(d, p, round(qty, 4), body.get("zone"), body.get("expiry"))
+            add_stock(d, p, round(qty, 6), body.get("zone"), body.get("expiry"))
             save_db(d)
             return {"ok": True, "product_id": p["id"]}
         elif path == "/api/stock/take":
@@ -1152,7 +1207,7 @@ def api(method, path, q, body):
             else:
                 qty = float(body.get("qty") or 1)
             if qty > 0:
-                take_stock(d, p, round(qty, 4), body.get("kind", "consume"))
+                take_stock(d, p, round(qty, 6), body.get("kind", "consume"))
             item = check_min(d, p)
             save_db(d)
             if item:
@@ -1343,7 +1398,7 @@ def api(method, path, q, body):
                 else:
                     q = float(it.get("units") or 1) / units_of(p)
                 if q > 0:
-                    take_stock(d, p, round(q, 4), "consume", "recette")
+                    take_stock(d, p, round(q, 6), "consume", "recette")
                     check_min(d, p)
             save_db(d)
             sync_alexa_soon()
