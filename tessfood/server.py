@@ -194,7 +194,8 @@ def off_lookup(code):
             break
     cat = (p.get("categories_tags") or [""])[-1].split(":")[-1].replace("-", " ")
     return {"name": name, "brand": (p.get("brands") or "").split(",")[0].strip(), "quantity": p.get("quantity") or "",
-            "image": p.get("image_front_small_url") or p.get("image_front_url") or "", "zone": zone, "category": cat}
+            "image": p.get("image_front_small_url") or p.get("image_front_url") or "", "zone": zone, "category": cat,
+            "cats": cats}
 
 
 # ---------------------------------------------------------------- produits & stock
@@ -219,6 +220,34 @@ def product_by_name(d, name):
     return best
 
 
+# Durées habituelles (jours) : se garde après achat / une fois ouvert. Estimations, modifiables par produit.
+SHELF = [
+    (("hache", "steak", "volaille", "poulet", "dinde", "poisson", "saumon", "cabillaud", "fish", "poultry", "meat"), 3, 1),
+    (("jambon", "lardon", "saucisse", "charcuterie", "ham", "bacon"), 10, 4),
+    (("yaourt", "yogurt", "fromage blanc", "dessert lacte", "skyr", "creme dessert"), 21, 2),
+    (("creme fraiche", "creme liquide", "cream"), 21, 4),
+    (("beurre", "butter"), 45, 30),
+    (("fromage", "cheese", "emmental", "comte", "camembert", "mozzarella"), 21, 10),
+    (("lait", "milk"), 60, 4),
+    (("oeuf", "eggs"), 21, 0),
+    (("salade", "laitue", "epinard", "legume", "vegetables"), 5, 2),
+    (("fruit", "pomme", "banane", "orange", "fraise"), 7, 0),
+    (("pain", "baguette", "bread", "brioche"), 4, 3),
+    (("jus", "juice"), 180, 5),
+    (("ketchup", "mayonnaise", "moutarde", "sauce"), 0, 30),
+]
+
+
+def estimate_shelf(name, cats="", zone="placard"):
+    if zone == "congelateur":
+        return 180, 0
+    t = norm(name) + " " + cats.replace("-", " ")
+    for words, keep, opened in SHELF:
+        if any(w in t for w in words):
+            return keep, opened
+    return (10, 4) if zone == "frigo" else (0, 0)
+
+
 def make_product(d, name, code=None, info=None, zone=None):
     info = info or {}
     pid = new_id()
@@ -227,6 +256,7 @@ def make_product(d, name, code=None, info=None, zone=None):
          "barcodes": [code] if code else [], "zone": zone or info.get("zone") or "placard",
          "min_qty": 0, "drive_name": "", "drive_url": "", "open_days": 0, "keep_days": 0,
          "created": iso(today())}
+    p["keep_days"], p["open_days"] = estimate_shelf(p["name"], info.get("cats", ""), p["zone"])
     d["products"][pid] = p
     return p
 
@@ -242,9 +272,9 @@ def add_move(d, pid, delta, kind, source):
 
 
 def add_stock(d, p, qty=1, zone=None, expiry=None, source="app", kind="add"):
-    exp = parse_date(expiry)
+    exp, est = parse_date(expiry), False
     if not exp and p.get("keep_days"):
-        exp = today() + dt.timedelta(days=int(p["keep_days"]))
+        exp, est = today() + dt.timedelta(days=int(p["keep_days"])), True
     zone = zone or p.get("zone") or "placard"
     for s in d["stock"]:  # on regroupe avec une ligne identique (même zone, même date, non ouverte)
         if s["product_id"] == p["id"] and s["zone"] == zone and s.get("expiry") == iso(exp) and not s.get("opened"):
@@ -252,7 +282,7 @@ def add_stock(d, p, qty=1, zone=None, expiry=None, source="app", kind="add"):
             break
     else:
         d["stock"].append({"id": new_id(), "product_id": p["id"], "qty": qty, "zone": zone, "expiry": iso(exp),
-                           "opened": None, "added": iso(today())})
+                           "opened": None, "added": iso(today()), "est": est})
     add_move(d, p["id"], qty, kind, source)
     # le produit est revenu : on le retire de la liste de courses
     for it in d["shopping"]:
@@ -608,7 +638,7 @@ def overview(d):
         e = parse_date(s.get("expiry"))
         zones.setdefault(s["zone"], []).append({
             "stock_id": s["id"], "product_id": p["id"], "name": p["name"], "brand": p.get("brand", ""),
-            "image": p.get("image", ""), "qty": s["qty"], "expiry": s.get("expiry"), "opened": s.get("opened"),
+            "image": p.get("image", ""), "qty": s["qty"], "expiry": s.get("expiry"), "opened": s.get("opened"), "est": s.get("est", False),
             "days": (e - today()).days if e else None, "min_qty": p.get("min_qty", 0)})
     for z in zones.values():
         z.sort(key=lambda x: (x["days"] if x["days"] is not None else 999, norm(x["name"])))
@@ -757,6 +787,8 @@ def api(method, path, q, body):
             for k in ("zone", "expiry", "qty"):
                 if k in body:
                     s[k] = float(body[k]) if k == "qty" else (body[k] or None)
+            if "expiry" in body:
+                s["est"] = False  # date lue sur l'emballage
             d["stock"] = [x for x in d["stock"] if x["qty"] > 0]
             save_db(d)
             return {"ok": True}

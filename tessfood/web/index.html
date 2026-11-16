@@ -255,13 +255,14 @@ function zoneOpts(sel) { for (const s of sel) s.innerHTML = Object.entries(ZL).m
 zoneOpts([$('#aZone'), $('#eZone'), $('#pZone')]);
 
 function thumb(x) { return x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy">` : `<div class="ph">${esc((x.name || '?')[0].toUpperCase())}</div>`; }
-function dlc(days, opened) {
+function dlc(days, opened, est) {
   let t = '';
+  const e = est ? '≈ ' : '';
   if (days !== null && days !== undefined) {
     if (days < 0) t += `<span class="tag r">périmé</span>`;
     else if (days === 0) t += `<span class="tag r">aujourd'hui</span>`;
-    else if (days <= 3) t += `<span class="tag a">${days} j</span>`;
-    else t += `<span class="tag">${days} j</span>`;
+    else if (days <= 3) t += `<span class="tag a">${e}${days} j</span>`;
+    else t += `<span class="tag">${e}${days} j</span>`;
   }
   if (opened) t += `<span class="tag b">ouvert</span>`;
   return t;
@@ -309,7 +310,7 @@ function renderStock() {
     h += `<h2>${ZL[z] || z} <small>${f.length} produit(s)</small></h2><div class="list">`;
     h += f.map(x => `<div class="item">${thumb(x)}
       <div class="mid" onclick="openEdit('${x.stock_id}')"><div class="name">${esc(x.name)}</div>
-      <div class="sub">${esc(x.brand || '')} ${dlc(x.days, x.opened)}</div></div>
+      <div class="sub">${esc(x.brand || '')} ${dlc(x.days, x.opened, x.est)}</div></div>
       <button class="ib" title="En sortir un" onclick="take('${x.product_id}')">−</button>
       <div class="qty">${nb(x.qty)}</div>
       <button class="ib" title="En ajouter un" onclick="plus('${x.product_id}','${z}')">+</button></div>`).join('')
