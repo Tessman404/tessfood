@@ -780,8 +780,8 @@ FIRE_ERRORS = {400: "la tâche Claude est en pause ou la demande est refusée", 
 def fire_routine(text):
     rid, token = os.environ.get("ROUTINE_ID", "").strip(), os.environ.get("ROUTINE_TOKEN", "").strip()
     if not rid or not token:
-        return {"ok": False, "manual": True,
-                "message": "Colle le jeton de la tâche Claude dans la configuration de l'extension (routine_token)."}
+        return {"ok": False, "manual": True, "url": f"https://claude.ai/scheduled-task/{rid}" if rid else "https://claude.ai/code/routines",
+                "message": "Appuie sur « Exécuter maintenant » : Claude lit ta liste et remplit le panier."}
     req = urllib.request.Request(ROUTINE_FIRE_URL.format(rid=urllib.parse.quote(rid, safe="")), method="POST",
                                  data=json.dumps({"text": text}).encode("utf-8"),
                                  headers={"Authorization": f"Bearer {token}", "anthropic-version": "2026-10-21",

@@ -218,7 +218,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
     <div id="shop" class="list"></div>
     <h2>Drive Intermarché</h2>
     <div class="box">
-      <p>Claude remplit ton panier Intermarché avec cette liste, dans ton Chrome. C'est toi qui valides et qui paies.</p>
+      <p>Claude remplit ton panier Intermarché avec cette liste, dans ton Chrome (ouvert sur ton Mac). Appuie sur le bouton, puis sur « Exécuter maintenant ». C'est toi qui valides et qui paies.</p>
       <div class="row">
         <button class="btn" onclick="sendClaude()">🛒 Remplir mon panier avec Claude</button>
         <button class="btn light" onclick="copyClaude()">Copier la demande</button>
@@ -585,10 +585,14 @@ const syncAlexa = () => act(async () => toast((await api('alexa/sync', {})).mess
 const createOrder = () => act(() => api('order/create', {}), 'Commande notée. Clique « Courses récupérées » au retour.');
 const cancelOrder = id => act(() => api('order/cancel', {id}), 'Commande annulée');
 async function sendClaude() {
-  if (!confirm('Claude va remplir ton panier Intermarché dans Chrome (sans valider ni payer). On y va ?')) return;
-  toast('Claude est réveillé…');
-  try { const r = await api('claude/cart', {}); toast(r.ok ? '✓ ' + r.message : '⚠️ ' + r.message); }
-  catch (e) { toast('⚠️ ' + e.message); }
+  const w = window.open('', '_blank');  // ouvert tout de suite (sinon bloqué par le navigateur)
+  try {
+    await api('alexa/sync', {}).catch(() => {});  // la liste à jour part dans « Shopping list », que Claude lit
+    const r = await api('claude/cart', {});
+    if (r.ok) { if (w) w.close(); toast('✓ ' + r.message); }
+    else if (r.manual && r.url) { if (w) w.location = r.url; else location.href = r.url; toast(r.message); }
+    else { if (w) w.close(); toast('⚠️ ' + r.message); }
+  } catch (e) { if (w) w.close(); toast('⚠️ ' + e.message); }
 }
 async function copyClaude() {
   const t = (await api('claude')).text;
