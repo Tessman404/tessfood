@@ -232,6 +232,8 @@ def off_lookup(code):
 
 # ---------------------------------------------------------------- rayons
 RAYONS = [
+    ("Plats préparés", ("pizza", "lasagne", "risotto", "basquaise", "poelee", "feuillete", "tarte", "croqueta", "sandwich",
+                        "ravioli", "tortellini", "quiche", "pate brisee", "pate feuilletee", "galettes de ble")),
     ("Fromages", ("fromage", "emmental", "comte", "camembert", "coulommiers", "cheddar", "mozzarella", "babybel",
                   "raclette", "morbier", "tomme", "felicien", "gouda", "mimolette")),
     ("Yaourts & desserts", ("yaourt", "dessert", "liegeois", "mousse", "paturette", "frulos", "yab", "suiss", "fromage blanc",
@@ -241,8 +243,6 @@ RAYONS = [
                             "poisson", "jacques", "boulette", "cordon", "nugget", "viande", "foie", "pot au feu", "epaule",
                             "thon", "surimi", "coraya")),
     ("Charcuterie", ("jambon", "lardon", "allumette", "saucisse", "saucisson", "fuet", "chorizo", "rillette", "knack", "terrine")),
-    ("Plats préparés", ("pizza", "lasagne", "risotto", "basquaise", "poelee", "feuillete", "tarte", "croqueta", "sandwich",
-                        "ravioli", "tortellini", "quiche", "pate brisee", "pate feuilletee", "galette")),
     ("Fruits & légumes", ("salade", "mache", "mesclun", "tomate", "carotte", "oignon", "champignon", "concombre", "laitue",
                           "pomme de terre", "pommes de terre", "banane", "pomme golden", "brocoli", "chou", "epinard", "poivron", "poireau",
                           "haricot", "petits pois", "legume", "betterave", "mais", "flageolet", "macedoine", "ratatouille")),
