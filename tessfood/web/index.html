@@ -78,6 +78,7 @@ dialog h3{margin:0}
 .hist div{padding:4px 0;border-bottom:1px solid var(--line)}
 code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .hide{display:none!important}
+.back{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-weight:700;color:var(--green)}
 .zchips{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px}
 .zchips button{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-weight:600;font-size:.9rem;white-space:nowrap}
 .zchips button.on{background:var(--green);color:#fff}
@@ -115,6 +116,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 <body>
 <div class="wrap">
   <header>
+    <button class="back" onclick="backHA()" title="Retour à Home Assistant">‹ Accueil</button>
     <h1>Tess<span>food</span></h1>
     <span id="mode" class="pill">Scanner : sortie</span>
     <div id="last" class="last"></div>
@@ -686,6 +688,16 @@ function doCook() {
   act(() => api('recipes/cook', {items}), 'Bon appétit ! Stock mis à jour').then(loadRecipes);
 }
 
+function backHA() {
+  try {
+    const P = window.parent;
+    if (P && P !== window) {
+      if (P.history.length > 1) { P.history.back(); return; }
+      P.history.pushState(null, '', '/'); P.dispatchEvent(new CustomEvent('location-changed')); return;
+    }
+  } catch {}
+  history.back();
+}
 // ------------------------------------------------ navigation
 function go(t) {
   TAB = t;
