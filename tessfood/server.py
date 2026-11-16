@@ -619,6 +619,39 @@ def alexa_items(ent):
     return (resp.get(ent) or {}).get("items", [])
 
 
+def match_in_stock(d, name, pid=None):
+    """Produit en stock qui correspond à un article ajouté à la liste (« moutarde » -> Moutarde de Dijon)."""
+    if pid and stock_qty(d, pid) > 0:
+        return d["products"].get(pid)
+    words = [w for w in norm(name).split() if len(w) > 2 and w not in ("des", "les", "une", "pour", "avec")]
+    if not words:
+        return None
+    cands = []
+    for p in d["products"].values():
+        if stock_qty(d, p["id"]) <= 0:
+            continue
+        t = " " + norm(p["name"]) + " "
+        if all((" " + w) in t or (" " + w.rstrip("s")) in t for w in words):
+            cands.append(p)
+    if not cands:
+        return None
+    # le plus proche : nom le plus court, puis le produit le plus récemment utilisé
+    last = {m["product_id"]: m["ts"] for m in d["moves"]}
+    cands.sort(key=lambda p: (len(norm(p["name"])), "" if p["id"] not in last else "0" + last[p["id"]]))
+    return cands[0]
+
+
+def finished_from_list(d, item):
+    """Un article ajouté à la liste = il n'y en a plus : on met ce produit à 0 dans le stock."""
+    p = match_in_stock(d, item["name"], item.get("product_id"))
+    if not p:
+        return None
+    take_stock(d, p, stock_qty(d, p["id"]), "consume", "liste")
+    item["product_id"] = p["id"]
+    item["zeroed"] = p["name"]
+    return p["name"]
+
+
 def sync_alexa():
     with LOCK:
         d = load_db()
@@ -630,6 +663,7 @@ def sync_alexa():
     with LOCK:
         d = load_db()
         by_uid = {i.get("alexa_uid"): i for i in d["shopping"] if i.get("alexa_uid")}
+        zeroed_names = []
         open_local = [i for i in d["shopping"] if not i.get("done")]
         seen = set()
         for r in remote:
@@ -642,9 +676,12 @@ def sync_alexa():
                 match["alexa_uid"] = uid
                 continue
             p = product_by_name(d, summary)
-            d["shopping"].append({"id": new_id(), "product_id": p["id"] if p else None, "name": summary, "qty": 1,
-                                  "source": "alexa", "done": False, "added": now().isoformat(timespec="seconds"),
-                                  "alexa_uid": uid})
+            it = {"id": new_id(), "product_id": p["id"] if p else None, "name": summary, "qty": 1,
+                  "source": "alexa", "done": False, "added": now().isoformat(timespec="seconds"), "alexa_uid": uid}
+            d["shopping"].append(it)
+            zeroed = finished_from_list(d, it)
+            if zeroed:
+                zeroed_names.append(zeroed)
         for i in d["shopping"]:
             if i.get("done") and i.get("alexa_uid") and i["alexa_uid"] in seen and not i.get("alexa_closed"):
                 to_done.append(i)
@@ -668,6 +705,9 @@ def sync_alexa():
             except Exception as e:
                 log("Alexa coche :", e)
         mark(i["id"], alexa_closed=True)
+    if zeroed_names:
+        notify("Tessfood : stock mis à jour", "Ajouté à la liste, donc plus en stock : " + ", ".join(zeroed_names)
+               + ". Si c'est une erreur, corrige dans Tessfood.", "tessfood-liste")
     return {"ok": True, "message": f"Alexa synchronisée ({len(remote)} article(s) sur la liste)"}
 
 
@@ -1209,12 +1249,14 @@ def api(method, path, q, body):
             name = name or (p["name"] if p else "")
             if not name:
                 raise ValueError("nom manquant")
-            d["shopping"].append({"id": new_id(), "product_id": p["id"] if p else None, "name": name if not p or body.get("name") is None else (p["name"] if norm(p["name"]) == norm(name) else name),
-                                  "qty": float(body.get("qty") or 1), "source": "manual", "done": False,
-                                  "added": now().isoformat(timespec="seconds"), "alexa_uid": None})
+            it = {"id": new_id(), "product_id": p["id"] if p else None, "name": name if not p or body.get("name") is None else (p["name"] if norm(p["name"]) == norm(name) else name),
+                  "qty": float(body.get("qty") or 1), "source": "manual", "done": False,
+                  "added": now().isoformat(timespec="seconds"), "alexa_uid": None}
+            d["shopping"].append(it)
+            zeroed = finished_from_list(d, it) if not body.get("keep_stock") else None
             save_db(d)
             sync_alexa_soon()
-            return {"ok": True}
+            return {"ok": True, "zeroed": zeroed}
         elif path == "/api/shopping/update":
             for i in d["shopping"]:
                 if i["id"] == body["id"]:

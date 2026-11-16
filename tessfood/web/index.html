@@ -559,7 +559,7 @@ function renderShop() {
     <div class="row"><button class="btn" onclick="openRecv('${o.id}')">Courses récupérées</button><button class="btn light small" onclick="cancelOrder('${o.id}')">Annuler la commande</button></div></div>`).join('');
   $('#shop').innerHTML = OV.shopping.map(i => `<div class="item">
       <button class="check" title="Acheté" onclick="doneItem('${i.id}')"></button>${thumb(i)}
-      <div class="mid"><div class="name">${esc(i.name)}</div><div class="sub">${SRC[i.source] || ''}${i.ordered ? '<span class="tag a">commandé</span>' : ''}
+      <div class="mid"><div class="name">${esc(i.name)}</div><div class="sub">${SRC[i.source] || ''}${i.ordered ? '<span class="tag a">commandé</span>' : ''}${i.zeroed ? `<span class="tag">stock mis à 0</span>` : ''}
         ${i.stock !== null ? `<span>en stock : ${nb(i.stock)}</span>` : ''} <a href="${esc(i.drive_url)}" target="_blank" rel="noopener">Intermarché ↗</a></div></div>
       <button class="ib" onclick="qtyItem('${i.id}',${i.qty - 1})">−</button><div class="qty">${nb(i.qty)}</div><button class="ib" onclick="qtyItem('${i.id}',${i.qty + 1})">+</button></div>`).join('')
     || '<div class="empty">La liste est vide 🎉</div>';
@@ -571,7 +571,12 @@ function renderShop() {
       <button class="btn small light" title="Ne pas racheter pour l'instant" onclick="act(()=>api('suggest/dismiss',{product_id:'${s.product_id}'}),'Ignoré')">Ignorer</button></div>`).join('')
     || '<div class="empty">Aucune suggestion pour le moment.</div>';
 }
-function addItem() { const n = $('#newItem').value.trim(); if (!n) return; $('#newItem').value = ''; act(() => api('shopping/add', {name: n}), 'Ajouté à la liste'); }
+async function addItem() {
+  const n = $('#newItem').value.trim(); if (!n) return; $('#newItem').value = '';
+  try { const r = await api('shopping/add', {name: n});
+    toast(r.zeroed ? `Ajouté à la liste · « ${r.zeroed} » mis à 0 dans le stock` : 'Ajouté à la liste', true); await load(); }
+  catch (e) { toast('⚠️ ' + e.message); }
+}
 $('#newItem').onkeydown = e => { if (e.key === 'Enter') addItem(); };
 const suggest = pid => act(() => api('shopping/add', {product_id: pid}), 'Ajouté à la liste');
 const doneItem = id => act(() => api('shopping/update', {id, done: true}), 'Coché');
