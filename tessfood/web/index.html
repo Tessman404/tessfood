@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f3b30">
+<title>Tessfood</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f3b30'/%3E%3Crect x='18' y='10' width='28' height='44' rx='6' fill='%23f6f1e7'/%3E%3Cpath d='M18 28h28' stroke='%231f3b30' stroke-width='3'/%3E%3Cpath d='M24 17v6M24 33v8' stroke='%23e2553a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f6f1e7; --card:#fffdf8; --ink:#1d2a24; --ink2:#5d6b64; --line:#e6dfd1;
+  --green:#1f3b30; --green2:#2f6b52; --mint:#d9efe3; --tomato:#e2553a; --amber:#e8a33d; --blue:#2f6fb0;
+  --r:14px; --shadow:0 1px 2px rgba(29,42,36,.06),0 6px 18px rgba(29,42,36,.06);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:90px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.wrap{max-width:900px;margin:0 auto;padding:16px 14px 0}
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+header h1{margin:0;font-size:1.9rem;letter-spacing:-.02em;color:var(--green)}
+header h1 span{color:var(--tomato)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--mint);color:var(--green);font-size:.85rem;font-weight:600}
+.pill.alt{background:#fde8e2;color:#a03520}
+.last{font-size:.85rem;color:var(--ink2);flex-basis:100%}
+.alerts{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 14px}
+.alerts button{padding:8px 12px;border-radius:12px;background:var(--card);box-shadow:var(--shadow);font-size:.9rem;font-weight:600}
+.alerts .r{color:var(--tomato)} .alerts .a{color:#a86a10}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--green);display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;max-width:150px;color:#cfe2d8;padding:6px 2px;border-radius:10px;font-size:.78rem;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+nav button svg{width:22px;height:22px}
+nav button.on{color:#fff;background:rgba(255,255,255,.1)}
+nav .badge{position:absolute;top:2px;right:calc(50% - 22px);background:var(--tomato);color:#fff;border-radius:999px;font-size:.68rem;padding:0 5px;min-width:17px}
+h2{font-size:1.15rem;margin:22px 0 8px;display:flex;align-items:center;gap:8px}
+h2 small{color:var(--ink2);font-weight:500;font-size:.85rem}
+.bar{display:flex;gap:8px;margin-bottom:10px}
+.bar input{flex:1}
+input,select{border:1.5px solid var(--line);background:#fff;border-radius:11px;padding:10px 12px;min-width:0;width:100%}
+.btn{padding:10px 14px;border-radius:11px;background:var(--green);color:#fff;font-weight:600;white-space:nowrap}
+.btn.light{background:var(--card);color:var(--green);box-shadow:var(--shadow)}
+.btn.red{background:var(--tomato)}
+.btn.small{padding:6px 10px;font-size:.85rem}
+.list{display:grid;gap:8px;grid-template-columns:minmax(0,1fr)}
+.item{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:var(--r);padding:9px 10px;box-shadow:var(--shadow)}
+.item img,.item .ph{width:46px;height:46px;border-radius:10px;object-fit:contain;background:#f1ece1;flex:none}
+.item .ph{display:grid;place-items:center;font-weight:700;color:var(--green2)}
+.item .mid{flex:1;min-width:0;overflow:hidden}
+.item .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .sub{font-size:.82rem;color:var(--ink2);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.74rem;font-weight:700;padding:1px 7px;border-radius:999px;background:#eee7da;color:var(--ink2)}
+.tag.r{background:#fde2dc;color:#b13a22}.tag.a{background:#fbecd2;color:#94600c}.tag.g{background:var(--mint);color:var(--green)}.tag.b{background:#e1ecf8;color:var(--blue)}
+.qty{font-weight:700;font-size:1.05rem;min-width:30px;text-align:center}
+.ib{width:36px;height:36px;border-radius:10px;background:#f1ece1;display:grid;place-items:center;font-weight:700;flex:none}
+.ib:active{transform:scale(.95)}
+.ib svg{width:18px;height:18px}
+.empty{color:var(--ink2);font-size:.92rem;padding:10px 4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 10px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-size:.86rem}
+.chip b{color:var(--green2)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:.84rem;color:var(--ink2);display:grid;gap:4px}
+.box{background:var(--card);border-radius:var(--r);padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.box p{margin:0 0 8px}
+.done .name{text-decoration:line-through;color:var(--ink2)}
+.check{width:26px;height:26px;border-radius:8px;border:2px solid var(--green2);flex:none;display:grid;place-items:center}
+.check.on{background:var(--green2);color:#fff}
+dialog{border:0;border-radius:18px;padding:0;width:min(520px,94vw);max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+dialog::backdrop{background:rgba(20,30,25,.45)}
+dialog .in{padding:18px;display:grid;gap:12px;overflow:auto;max-height:90vh}
+dialog h3{margin:0}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:12px;font-size:.92rem;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20;max-width:92vw}
+.toast.on{opacity:1}
+.hist{font-size:.85rem;color:var(--ink2)}
+.hist div{padding:4px 0;border-bottom:1px solid var(--line)}
+code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Tess<span>food</span></h1>
+    <span id="mode" class="pill">Scanner : sortie</span>
+    <div id="last" class="last"></div>
+  </header>
+  <div id="alerts" class="alerts"></div>
+
+  <!-- STOCK -->
+  <section id="t-stock">
+    <div class="bar">
+      <input id="q" placeholder="Chercher dans le stock…" autocomplete="off">
+      <button class="btn" onclick="openAdd()">+ Ajouter</button>
+    </div>
+    <div id="zones"></div>
+  </section>
+
+  <!-- COURSES -->
+  <section id="t-courses" class="hide">
+    <div class="bar">
+      <input id="newItem" placeholder="Ajouter à la liste (ex. café)" autocomplete="off" list="dl-products">
+      <button class="btn" onclick="addItem()">Ajouter</button>
+    </div>
+    <div id="orders"></div>
+    <div id="shop" class="list"></div>
+    <div id="sugg"></div>
+    <h2>Drive Intermarché</h2>
+    <div class="box">
+      <p>Claude peut remplir ton panier Intermarché avec cette liste. C'est toi qui valides et qui paies.</p>
+      <div class="row">
+        <button class="btn" onclick="copyClaude()">Copier la demande pour Claude</button>
+        <button class="btn light" onclick="createOrder()">Commande passée</button>
+        <button class="btn light" onclick="syncAlexa()">Synchroniser Alexa</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- VERIFIER -->
+  <section id="t-check" class="hide">
+    <h2>À consommer vite</h2>
+    <div id="exp" class="list"></div>
+    <h2>Sûrement finis ? <small>sortie peut-être oubliée</small></h2>
+    <div id="doubt" class="list"></div>
+    <h2>Produits à compléter <small>scannés mais inconnus</small></h2>
+    <div id="unk" class="list"></div>
+  </section>
+
+  <!-- PRODUITS -->
+  <section id="t-products" class="hide">
+    <div class="bar"><input id="pq" placeholder="Chercher un produit…" autocomplete="off"></div>
+    <div id="products" class="list"></div>
+  </section>
+
+  <!-- REGLAGES -->
+  <section id="t-settings" class="hide">
+    <h2>Scanner</h2>
+    <div class="box">
+      <p>Tester sans scanner : tape un code-barres.</p>
+      <div class="bar"><input id="code" inputmode="numeric" placeholder="ex. 3017620425035"><button class="btn" onclick="manualScan()">Scanner</button></div>
+      <p class="hist">Adresse du scanner : <code id="scanUrl"></code><br>Jeton : <code id="scanTok"></code></p>
+      <a class="btn light" href="cartes" target="_blank">Imprimer les cartes de mode</a>
+    </div>
+    <h2>Réglages</h2>
+    <div class="box" id="setForm">
+      <div class="grid2">
+        <label>Notifications (service téléphone)<input name="notify_service" placeholder="mobile_app_iphone_de_thomas"></label>
+        <label>Liste Alexa (entité)<input name="alexa_entity" placeholder="todo.alexa_shopping_list"></label>
+        <label>Capteur porte du frigo<input name="door_entity" placeholder="binary_sensor.porte_frigo"></label>
+        <label>Alerte porte après (min)<input name="door_minutes" type="number" min="1"></label>
+        <label>Prévenir avant la date (jours)<input name="expiry_warn_days" type="number" min="0"></label>
+        <label>Annonce vocale (enceinte, optionnel)<input name="announce_entity" placeholder="media_player.echo_cuisine"></label>
+        <label>Vérification de la semaine
+          <select name="check_weekday"><option value="0">Lundi</option><option value="1">Mardi</option><option value="2">Mercredi</option><option value="3">Jeudi</option><option value="4">Vendredi</option><option value="5">Samedi</option><option value="6">Dimanche</option></select></label>
+        <label>à (heure)<input name="check_hour" type="number" min="0" max="23"></label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn" onclick="saveSettings()">Enregistrer</button>
+        <button class="btn light" onclick="testNotify()">Tester la notification</button>
+      </div>
+    </div>
+    <h2>Derniers mouvements</h2>
+    <div id="hist" class="hist box"></div>
+  </section>
+</div>
+
+<nav>
+  <button data-t="stock" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M5 10h14M9 5v2M9 13v3"/></svg>Stock</button>
+  <button data-t="courses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.5 11h11L21 7H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>Courses<span class="badge hide" id="b-courses"></span></button>
+  <button data-t="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>Vérifier<span class="badge hide" id="b-check"></span></button>
+  <button data-t="products"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Produits</button>
+  <button data-t="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg>Réglages</button>
+</nav>
+<datalist id="dl-products"></datalist>
+
+<!-- Ajouter au stock -->
+<dialog id="dAdd"><form class="in" method="dialog" onsubmit="return false">
+  <h3>Ajouter au stock</h3>
+  <label>Produit<input id="aName" list="dl-products" placeholder="ex. Yaourts nature" autocomplete="off"></label>
+  <div class="grid2">
+    <label>Quantité<input id="aQty" type="number" min="0.25" step="0.25" value="1"></label>
+    <label>Où<select id="aZone"></select></label>
+  </div>
+  <label>À consommer avant (optionnel)<input id="aExp" type="date"></label>
+  <div class="row"><button class="btn" onclick="doAdd()">Ajouter</button><button class="btn light" onclick="dAdd.close()">Annuler</button></div>
+</form></dialog>
+
+<!-- Modifier une ligne de stock -->
+<dialog id="dEdit"><form class="in" method="dialog" onsubmit="return false">
+  <h3 id="eTitle"></h3>
+  <div class="grid2">
+    <label>Quantité<input id="eQty" type="number" min="0" step="0.25"></label>
+    <label>Où<select id="eZone"></select></label>
+  </div>
+  <label>À consommer avant<input id="eExp" type="date"></label>
+  <div class="row">
+    <button class="btn" onclick="doEdit()">Enregistrer</button>
+    <button class="btn light" onclick="stockAct('open')">Ouvert</button>
+    <button class="btn red" onclick="stockAct('waste')">Jeté</button>
+    <button class="btn light" onclick="dEdit.close()">Fermer</button>
+  </div>
+</form></dialog>
+
+<!-- Fiche produit -->
+<dialog id="dProd"><form class="in" method="dialog" onsubmit="return false">
+  <h3>Fiche produit</h3>
+  <label>Nom<input id="pName"></label>
+  <div class="grid2">
+    <label>Marque<input id="pBrand"></label>
+    <label>Rangé dans<select id="pZone"></select></label>
+    <label>Minimum à avoir (0 = aucun)<input id="pMin" type="number" min="0" step="1"></label>
+    <label>Se garde ouvert (jours)<input id="pOpen" type="number" min="0"></label>
+    <label>Se garde après achat (jours)<input id="pKeep" type="number" min="0"></label>
+    <label>Ajouter un code-barres<input id="pCode" inputmode="numeric"></label>
+  </div>
+  <label>Nom exact sur le drive Intermarché (optionnel)<input id="pDrive" placeholder="ex. Lait demi-écrémé Candia 6x1L"></label>
+  <label>Lien du produit sur le drive (optionnel)<input id="pUrl" placeholder="https://www.intermarche.com/produit/…"></label>
+  <label id="pMergeL">C'est en fait…<select id="pMerge"><option value="">— garder comme produit à part —</option></select></label>
+  <p class="hist" id="pCodes"></p>
+  <div class="row">
+    <button class="btn" onclick="saveProd()">Enregistrer</button>
+    <button class="btn light" onclick="dProd.close()">Fermer</button>
+    <button class="btn red" onclick="delProd()">Supprimer</button>
+  </div>
+</form></dialog>
+
+<!-- Réception commande -->
+<dialog id="dRecv"><form class="in" method="dialog" onsubmit="return false">
+  <h3>Courses récupérées</h3>
+  <p class="hist">Décoche ce qui manquait (ça reste sur la liste). Corrige les quantités si besoin.</p>
+  <div id="rItems" class="list"></div>
+  <div class="row"><button class="btn" onclick="doReceive()">Tout ranger dans le stock</button><button class="btn light" onclick="dRecv.close()">Plus tard</button></div>
+</form></dialog>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nb = x => (Math.round(x * 100) / 100).toString().replace('.', ',');
+let OV = null, PRODUCTS = [], TAB = 'stock', EDIT = null, PROD = null, ORDER = null;
+const ZL = {frigo:'Frigo', congelateur:'Congélateur', placard:'Placard', cellier:'Cellier'};
+
+async function api(path, body) {
+  const r = await fetch('api/' + path, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.message || ('erreur ' + r.status));
+  return j;
+}
+function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2600); }
+async function act(fn, msg) { try { await fn(); if (msg) toast(msg); await load(); } catch (e) { toast('⚠️ ' + e.message); } }
+
+function zoneOpts(sel) { for (const s of sel) s.innerHTML = Object.entries(ZL).map(([k, v]) => `<option value="${k}">${v}</option>`).join(''); }
+zoneOpts([$('#aZone'), $('#eZone'), $('#pZone')]);
+
+function thumb(x) { return x.image ? `<img src="${esc(x.image)}" alt="" loading="lazy">` : `<div class="ph">${esc((x.name || '?')[0].toUpperCase())}</div>`; }
+function dlc(days, opened) {
+  let t = '';
+  if (days !== null && days !== undefined) {
+    if (days < 0) t += `<span class="tag r">périmé</span>`;
+    else if (days === 0) t += `<span class="tag r">aujourd'hui</span>`;
+    else if (days <= 3) t += `<span class="tag a">${days} j</span>`;
+    else t += `<span class="tag">${days} j</span>`;
+  }
+  if (opened) t += `<span class="tag b">ouvert</span>`;
+  return t;
+}
+
+// ------------------------------------------------ chargement
+async function load() {
+  OV = await api('overview');
+  const m = $('#mode');
+  m.textContent = 'Scanner : ' + OV.mode_label.toLowerCase();
+  m.className = 'pill' + (OV.mode === 'consume' ? '' : ' alt');
+  $('#last').textContent = OV.last_scan ? `Dernier scan : ${OV.last_scan.name} (${OV.last_scan.ts.slice(11, 16)})` : '';
+  const a = [];
+  if (OV.expiring.length) a.push(`<button class="r" onclick="go('check')">⏳ ${OV.expiring.length} à consommer vite</button>`);
+  if (OV.doubtful.length) a.push(`<button class="a" onclick="go('check')">❓ ${OV.doubtful.length} à vérifier</button>`);
+  if (OV.orders.length) a.push(`<button onclick="go('courses')">🛒 Commande en cours</button>`);
+  if (!OV.ha) a.push(`<button class="a">Hors Home Assistant (test)</button>`);
+  $('#alerts').innerHTML = a.join('');
+  const nc = OV.expiring.length + OV.doubtful.length + OV.unknown.length;
+  badge('#b-check', nc); badge('#b-courses', OV.shopping.length);
+  renderStock(); renderShop(); renderCheck();
+  if (TAB === 'products') loadProducts();
+  if (TAB === 'settings') loadSettings();
+}
+function badge(id, n) { const b = $(id); b.textContent = n; b.classList.toggle('hide', !n); }
+
+async function loadProducts() {
+  PRODUCTS = await api('products');
+  $('#dl-products').innerHTML = PRODUCTS.map(p => `<option value="${esc(p.name)}">`).join('');
+  const t = $('#pq').value.toLowerCase();
+  const ps = PRODUCTS.filter(p => !t || (p.name + ' ' + p.brand).toLowerCase().includes(t));
+  $('#products').innerHTML = ps.map(p => `<div class="item" onclick="openProd('${p.id}')">${thumb(p)}
+    <div class="mid"><div class="name">${esc(p.name)}</div><div class="sub">${esc(p.brand || '')} <span class="tag">${ZL[p.zone] || p.zone}</span>
+    ${p.min_qty ? `<span class="tag g">min ${nb(p.min_qty)}</span>` : ''}${p.drive_name || p.drive_url ? '<span class="tag b">drive</span>' : ''}</div></div>
+    <div class="qty">${nb(p.stock)}</div></div>`).join('') || '<div class="empty">Aucun produit pour l\'instant. Scanne ou ajoute un produit.</div>';
+}
+
+// ------------------------------------------------ stock
+function renderStock() {
+  const t = $('#q').value.toLowerCase();
+  let h = '';
+  for (const [z, items] of Object.entries(OV.zones)) {
+    const f = items.filter(x => !t || (x.name + ' ' + x.brand).toLowerCase().includes(t));
+    if (!f.length && t) continue;
+    h += `<h2>${ZL[z] || z} <small>${f.length} produit(s)</small></h2><div class="list">`;
+    h += f.map(x => `<div class="item">${thumb(x)}
+      <div class="mid" onclick="openEdit('${x.stock_id}')"><div class="name">${esc(x.name)}</div>
+      <div class="sub">${esc(x.brand || '')} ${dlc(x.days, x.opened)}</div></div>
+      <button class="ib" title="En sortir un" onclick="take('${x.product_id}')">−</button>
+      <div class="qty">${nb(x.qty)}</div>
+      <button class="ib" title="En ajouter un" onclick="plus('${x.product_id}','${z}')">+</button></div>`).join('')
+      || '<div class="empty">Vide</div>';
+    h += '</div>';
+  }
+  $('#zones').innerHTML = h;
+}
+$('#q').oninput = renderStock;
+$('#pq').oninput = loadProducts;
+const take = pid => act(() => api('stock/take', {product_id: pid, qty: 1}), 'Sorti du stock');
+const plus = (pid, z) => act(() => api('stock/add', {product_id: pid, qty: 1, zone: z}), 'Ajouté');
+
+function openAdd() { $('#aName').value = ''; $('#aQty').value = 1; $('#aExp').value = ''; $('#aZone').value = 'frigo'; loadProducts(); dAdd.showModal(); $('#aName').focus(); }
+$('#aName').onchange = () => { const p = PRODUCTS.find(p => p.name === $('#aName').value); if (p) $('#aZone').value = p.zone; };
+function doAdd() {
+  const name = $('#aName').value.trim(); if (!name) return toast('Indique un produit');
+  const p = PRODUCTS.find(p => p.name.toLowerCase() === name.toLowerCase());
+  dAdd.close();
+  act(() => api('stock/add', {product_id: p ? p.id : null, name, qty: +$('#aQty').value || 1, zone: $('#aZone').value, expiry: $('#aExp').value || null}), 'Ajouté au stock');
+}
+function openEdit(sid) {
+  for (const items of Object.values(OV.zones)) { const x = items.find(i => i.stock_id === sid); if (x) EDIT = x; }
+  $('#eTitle').textContent = EDIT.name; $('#eQty').value = EDIT.qty; $('#eZone').value = Object.keys(OV.zones).find(z => OV.zones[z].includes(EDIT)); $('#eExp').value = EDIT.expiry || '';
+  dEdit.showModal();
+}
+function doEdit() { dEdit.close(); act(() => api('stock/edit', {stock_id: EDIT.stock_id, qty: +$('#eQty').value, zone: $('#eZone').value, expiry: $('#eExp').value}), 'Enregistré'); }
+function stockAct(k) {
+  dEdit.close();
+  if (k === 'open') act(() => api('stock/open', {product_id: EDIT.product_id}), 'Marqué ouvert');
+  else act(() => api('stock/take', {product_id: EDIT.product_id, qty: 1, kind: 'waste'}), 'Noté comme jeté');
+}
+
+// ------------------------------------------------ courses
+const SRC = {alexa: '<span class="tag b">Alexa</span>', auto: '<span class="tag g">auto</span>', manual: ''};
+function renderShop() {
+  $('#orders').innerHTML = OV.orders.map(o => `<div class="box"><p><b>Commande du ${o.date.split('-').reverse().join('/')}</b> — ${o.items.length} article(s)</p>
+    <div class="row"><button class="btn" onclick="openRecv('${o.id}')">Courses récupérées</button><button class="btn light small" onclick="cancelOrder('${o.id}')">Annuler la commande</button></div></div>`).join('');
+  $('#shop').innerHTML = OV.shopping.map(i => `<div class="item">
+      <button class="check" title="Acheté" onclick="doneItem('${i.id}')"></button>${thumb(i)}
+      <div class="mid"><div class="name">${esc(i.name)}</div><div class="sub">${SRC[i.source] || ''}${i.ordered ? '<span class="tag a">commandé</span>' : ''}
+        ${i.stock !== null ? `<span>en stock : ${nb(i.stock)}</span>` : ''} <a href="${esc(i.drive_url)}" target="_blank" rel="noopener">Intermarché ↗</a></div></div>
+      <button class="ib" onclick="qtyItem('${i.id}',${i.qty - 1})">−</button><div class="qty">${nb(i.qty)}</div><button class="ib" onclick="qtyItem('${i.id}',${i.qty + 1})">+</button></div>`).join('')
+    || '<div class="empty">La liste est vide 🎉</div>';
+  $('#sugg').innerHTML = OV.suggestions.length ? `<h2>Suggestions</h2><div class="chips">${OV.suggestions.map(s =>
+    `<button class="chip" onclick="suggest('${s.product_id}')"><b>+</b> ${esc(s.name)} <small>· ${s.reason}</small></button>`).join('')}</div>` : '';
+}
+function addItem() { const n = $('#newItem').value.trim(); if (!n) return; $('#newItem').value = ''; act(() => api('shopping/add', {name: n}), 'Ajouté à la liste'); }
+$('#newItem').onkeydown = e => { if (e.key === 'Enter') addItem(); };
+const suggest = pid => act(() => api('shopping/add', {product_id: pid}), 'Ajouté à la liste');
+const doneItem = id => act(() => api('shopping/update', {id, done: true}), 'Coché');
+const qtyItem = (id, q) => q <= 0 ? doneItem(id) : act(() => api('shopping/update', {id, qty: q}));
+const syncAlexa = () => act(async () => toast((await api('alexa/sync', {})).message));
+const createOrder = () => act(() => api('order/create', {}), 'Commande notée. Clique « Courses récupérées » au retour.');
+const cancelOrder = id => act(() => api('order/cancel', {id}), 'Commande annulée');
+async function copyClaude() {
+  const t = (await api('claude')).text;
+  try { await navigator.clipboard.writeText(t); toast('Copié : colle-le dans Claude'); }
+  catch { prompt('Copie ce texte pour Claude :', t); }
+}
+function openRecv(id) {
+  ORDER = OV.orders.find(o => o.id === id);
+  $('#rItems').innerHTML = ORDER.items.map(it => `<div class="item"><button class="check on" data-id="${it.item_id}" onclick="this.classList.toggle('on');this.textContent=this.classList.contains('on')?'✓':''">✓</button>
+    <div class="mid"><div class="name">${esc(it.name)}</div></div><input type="number" min="0" step="1" value="${it.qty}" style="width:70px" data-q="${it.item_id}"></div>`).join('');
+  dRecv.showModal();
+}
+function doReceive() {
+  const items = ORDER.items.map(it => ({item_id: it.item_id, ok: $(`[data-id="${it.item_id}"]`).classList.contains('on'), qty: +$(`[data-q="${it.item_id}"]`).value}));
+  dRecv.close();
+  act(() => api('order/receive', {id: ORDER.id, items}), 'Rangé dans le stock 👍');
+}
+
+// ------------------------------------------------ vérifier
+function renderCheck() {
+  $('#exp').innerHTML = OV.expiring.map(x => `<div class="item"><div class="mid"><div class="name">${esc(x.name)}</div>
+      <div class="sub">${ZL[x.zone]} · ${nb(x.qty)} ${dlc(x.days)}</div></div>
+      <button class="btn small light" onclick="act(()=>api('stock/take',{product_id:'${x.product_id}',qty:1}),'Mangé')">Mangé</button>
+      <button class="btn small red" onclick="act(()=>api('stock/take',{product_id:'${x.product_id}',qty:1,kind:'waste'}),'Jeté')">Jeté</button></div>`).join('')
+    || '<div class="empty">Rien qui périme bientôt.</div>';
+  $('#doubt').innerHTML = OV.doubtful.map(x => `<div class="item"><div class="mid"><div class="name">${esc(x.name)}</div>
+      <div class="sub">l'appli en compte ${nb(x.qty)} · ${esc(x.reason)}</div></div>
+      <button class="btn small light" onclick="act(()=>api('check',{product_id:'${x.product_id}',still:true}),'Noté')">Encore là</button>
+      <button class="btn small" onclick="act(()=>api('check',{product_id:'${x.product_id}',still:false}),'Retiré du stock')">Fini</button></div>`).join('')
+    || '<div class="empty">Tout semble à jour.</div>';
+  $('#unk').innerHTML = OV.unknown.map(u => `<div class="item" onclick="openProd('${u.product_id}')"><div class="mid"><div class="name">${esc(u.name)}</div>
+      <div class="sub">code ${esc(u.code)} · touche pour lui donner un nom</div></div></div>`).join('')
+    || '<div class="empty">Aucun.</div>';
+}
+
+// ------------------------------------------------ fiche produit
+async function openProd(id) {
+  if (!PRODUCTS.length || !PRODUCTS.find(p => p.id === id)) PRODUCTS = await api('products');
+  PROD = PRODUCTS.find(p => p.id === id); if (!PROD) return;
+  $('#pName').value = PROD.name; $('#pBrand').value = PROD.brand || ''; $('#pZone').value = PROD.zone;
+  $('#pMin').value = PROD.min_qty || 0; $('#pOpen').value = PROD.open_days || 0; $('#pKeep').value = PROD.keep_days || 0;
+  $('#pDrive').value = PROD.drive_name || ''; $('#pUrl').value = PROD.drive_url || ''; $('#pCode').value = '';
+  $('#pCodes').textContent = PROD.barcodes.length ? 'Codes-barres : ' + PROD.barcodes.join(', ') : 'Aucun code-barres';
+  $('#pMerge').innerHTML = '<option value="">— garder comme produit à part —</option>' + PRODUCTS.filter(p => p.id !== id).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  $('#pMergeL').classList.toggle('hide', !PROD.barcodes.length);
+  dProd.showModal();
+}
+function saveProd() {
+  const into = $('#pMerge').value;
+  dProd.close();
+  if (into) return act(() => api('product/merge', {from: PROD.id, into}), 'Produits fusionnés');
+  act(() => api('product/save', {id: PROD.id, name: $('#pName').value, brand: $('#pBrand').value, zone: $('#pZone').value,
+    min_qty: $('#pMin').value, open_days: $('#pOpen').value, keep_days: $('#pKeep').value, drive_name: $('#pDrive').value,
+    drive_url: $('#pUrl').value, add_barcode: $('#pCode').value}), 'Fiche enregistrée');
+}
+function delProd() { if (!confirm('Supprimer ce produit et son stock ?')) return; dProd.close(); act(() => api('product/delete', {id: PROD.id}), 'Supprimé'); }
+
+// ------------------------------------------------ réglages
+async function loadSettings() {
+  const s = await api('settings');
+  for (const el of $('#setForm').querySelectorAll('[name]')) el.value = s[el.name] ?? '';
+  $('#scanTok').textContent = s.scan_token || '(à définir dans la configuration de l’extension)';
+  $('#scanUrl').textContent = `http://<adresse de Home Assistant>:8098/scan`;
+  const h = await api('history');
+  const K = {consume: 'sorti', add: 'ajouté', purchase: 'acheté', waste: 'jeté', open: 'ouvert'};
+  $('#hist').innerHTML = h.map(m => `<div>${m.ts.slice(5, 16).replace('T', ' ')} · <b>${esc(m.name)}</b> ${K[m.kind] || m.kind}${m.delta ? ' (' + (m.delta > 0 ? '+' : '') + nb(m.delta) + ')' : ''} · ${m.source}</div>`).join('') || 'Rien pour l’instant.';
+}
+function saveSettings() {
+  const b = {}; for (const el of $('#setForm').querySelectorAll('[name]')) b[el.name] = el.type === 'number' || el.tagName === 'SELECT' ? +el.value : el.value.trim();
+  act(() => api('settings', b), 'Réglages enregistrés');
+}
+const testNotify = () => act(async () => toast((await api('test-notify', {})).ok ? 'Notification envoyée' : '⚠️ Vérifie le service de notification'));
+async function manualScan() {
+  const c = $('#code').value.trim(); if (!c) return;
+  try { const r = await api('scan', {code: c}); toast(r.message); $('#code').value = ''; load(); } catch (e) { toast('⚠️ ' + e.message); }
+}
+$('#code').onkeydown = e => { if (e.key === 'Enter') manualScan(); };
+
+// ------------------------------------------------ navigation
+function go(t) {
+  TAB = t;
+  for (const b of document.querySelectorAll('nav button')) b.classList.toggle('on', b.dataset.t === t);
+  for (const s of document.querySelectorAll('section')) s.classList.toggle('hide', s.id !== 't-' + t);
+  if (t === 'products') loadProducts();
+  if (t === 'settings') loadSettings();
+  scrollTo(0, 0);
+}
+for (const b of document.querySelectorAll('nav button')) b.onclick = () => go(b.dataset.t);
+load().then(loadProducts).catch(e => toast('⚠️ ' + e.message));
+setInterval(() => { if (!document.querySelector('dialog[open]')) load().catch(() => {}); }, 15000);
+</script>
+</body>
+</html>

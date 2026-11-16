@@ -1,0 +1,60 @@
+# Scanner de cuisine Tessfood : module GM861 (lecture automatique) + ESP32, en Wi-Fi.
+# Branchement : GM861 TX -> GPIO16 (RX de l'ESP32), GM861 RX -> GPIO17, 5V -> 5V, GND -> GND.
+# Le GM861 doit être en mode « détection automatique » (induction mode), sortie série 9600 bauds,
+# avec un retour à la ligne (CR) après chaque code : voir le manuel du module (codes de configuration à scanner).
+
+substitutions:
+  tessfood_url: "http://192.168.1.10:8098/scan"   # adresse de ton Home Assistant + :8098/scan
+  tessfood_token: "COLLE_ICI_LE_JETON"            # jeton visible dans Tessfood > Réglages
+
+esphome:
+  name: tessfood-scanner
+  friendly_name: Scanner Tessfood
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+api:
+ota:
+  - platform: esphome
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+http_request:
+  verify_ssl: false
+  timeout: 5s
+
+uart:
+  id: scan_uart
+  rx_pin: GPIO16
+  tx_pin: GPIO17
+  baud_rate: 9600
+  debug:
+    direction: RX
+    dummy_receiver: true
+    after:
+      delimiter: "\r"
+    sequence:
+      - lambda: |-
+          std::string code;
+          for (auto b : bytes) {
+            if (b >= 33 && b <= 126) code += (char) b;   // on ne garde que les caractères imprimables
+          }
+          if (!code.empty()) id(last_code).publish_state(code);
+
+text_sensor:
+  - platform: template
+    id: last_code
+    name: "Dernier code scanné"
+    on_value:
+      then:
+        - http_request.post:
+            url: ${tessfood_url}
+            request_headers:
+              X-Token: ${tessfood_token}
+              Content-Type: text/plain
+            body: !lambda 'return x;'
