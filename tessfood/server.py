@@ -121,6 +121,9 @@ def load_db():
     d.setdefault("unknown", [])
     d.setdefault("checks", {})       # product_id -> date de la dernière confirmation « encore là »
     d.setdefault("state", {})
+    for x in d["stock"]:
+        if x.get("zone") == "congelateur" and x.get("est"):
+            x["expiry"], x["est"] = None, False
     s = dict(DEFAULT_SETTINGS)
     s.update(d.get("settings") or {})
     d["settings"] = s
@@ -323,7 +326,7 @@ SHELF = [
 
 def estimate_shelf(name, cats="", zone="placard"):
     if zone == "congelateur":
-        return 180, 0
+        return 0, 0  # au congélateur, pas de date ni d'alerte
     if zone in ("cellier", "maison"):
         return 0, 0
     t = " " + norm(name) + " " + cats.replace("-", " ")
@@ -593,6 +596,8 @@ def expiring(d, days=None):
     out = []
     for s in d["stock"]:
         e = parse_date(s.get("expiry"))
+        if s.get("zone") == "congelateur":
+            continue  # le congélateur ne déclenche jamais d'alerte
         if e and e <= lim:
             p = d["products"].get(s["product_id"], {})
             out.append({"stock_id": s["id"], "product_id": s["product_id"], "name": p.get("name", "?"), "qty": s["qty"],
@@ -778,7 +783,7 @@ def recipes_view(d):
         p = d["products"].get(s_["product_id"])
         if not p or s_["qty"] <= 0:
             continue
-        e = parse_date(s_.get("expiry"))
+        e = parse_date(s_.get("expiry")) if s_.get("zone") != "congelateur" else None
         days = (e - today()).days if e else None
         it = items.setdefault(p["id"], {"product_id": p["id"], "name": p["name"], "qty": 0, "days": days,
                                         "units": units_of(p), "image": p.get("image", "")})
@@ -892,7 +897,7 @@ def overview(d):
         p = d["products"].get(s["product_id"])
         if not p:
             continue
-        e = parse_date(s.get("expiry"))
+        e = parse_date(s.get("expiry")) if s["zone"] != "congelateur" else None
         zones.setdefault(s["zone"], []).append({
             "stock_id": s["id"], "product_id": p["id"], "name": p["name"], "brand": p.get("brand", ""),
             "image": p.get("image", ""), "qty": s["qty"], "expiry": s.get("expiry"), "opened": s.get("opened"), "est": s.get("est", False),
