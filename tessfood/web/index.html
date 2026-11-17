@@ -205,7 +205,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
       <div class="bar"><input id="wish" placeholder="Une envie ? (ex. rapide, sans four, poisson…)"><button class="btn" onclick="genRecipes()">Nouvelles idées</button></div>
     </div>
     <div class="zchips" id="rfilters">
-      <button class="on" data-f="all">Toutes</button><button data-f="ok">Tout est là</button><button data-f="urgent">Anti-gaspi</button><button data-f="fast">Rapides</button><button data-f="fav">★ Favorites</button>
+      <button class="on" data-f="all">Toutes</button><button data-f="ok">Tout est là</button><button data-f="urgent">Anti-gaspi</button><button data-f="fast">Rapides</button><button data-f="fav">★ Favorites</button><button data-f="cooked">Déjà cuisinées</button>
     </div>
     <div id="recipes" class="rgrid"></div>
   </section>
@@ -331,9 +331,9 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <h3>Bon appétit ! 🍽️</h3>
   <p>As-tu pensé à sortir du stock les produits utilisés pour cette recette ?</p>
   <div class="choice">
-    <button class="main" onclick="dCookAsk.close();toast('Parfait, rien de plus à faire')">Oui, c'est déjà fait<span>avec le scanner ou les boutons −</span></button>
-    <button onclick="dCookAsk.close();openCookList()">Non, les sortir maintenant<span>je coche ce que j'ai utilisé</span></button>
-    <button onclick="dCookAsk.close()">Plus tard<span>je le ferai moi-même</span></button>
+    <button type="button" class="main" onclick="cookedDone('Parfait, recette rangée dans « Déjà cuisinées »')">Oui, c'est déjà fait<span>avec le scanner ou les boutons −</span></button>
+    <button type="button" onclick="cookedDone(null);openCookList()">Non, les sortir maintenant<span>je coche ce que j'ai utilisé</span></button>
+    <button type="button" onclick="cookedDone('Recette rangée dans « Déjà cuisinées »')">Plus tard<span>je le ferai moi-même</span></button>
   </div>
 </form></dialog>
 
@@ -902,7 +902,7 @@ for (const b of document.querySelectorAll('#rfilters button')) b.onclick = () =>
   for (const x of document.querySelectorAll('#rfilters button')) x.classList.toggle('on', x === b); renderRecipes(); };
 async function loadRecipes() { const r = await api('recipes'); RECIPES = r.recipes; $('#claudeBox').classList.toggle('hide', !r.claude && !RECIPES.length && false); window.CLAUDE = r.claude; renderRecipes(); }
 function renderRecipes() {
-  let rs = RECIPES;
+  let rs = RF === 'cooked' ? RECIPES.filter(r => r.hidden) : RECIPES.filter(r => !r.hidden);
   if (RF === 'ok') rs = rs.filter(r => !r.missing);
   if (RF === 'urgent') rs = rs.filter(r => r.urgent.length);
   if (RF === 'fast') rs = rs.filter(r => (r.time || 99) <= 25);
@@ -919,6 +919,7 @@ function renderRecipes() {
       <ol>${r.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></details>
     <div class="row"><button class="btn small" onclick="openCook('${r.id}')">J'ai cuisiné</button>
       ${r.missing ? `<button class="btn small light" onclick="act(()=>api('recipes/missing',{id:'${r.id}'}),'Ajouté à la liste de courses')">Ajouter les manquants</button>` : ''}
+      ${r.hidden ? `<button class="btn small light" onclick="act(()=>api('recipes/cooked',{id:'${r.id}',reset:true}),'Recette de nouveau proposée').then(loadRecipes)">Proposer à nouveau</button>` : ''}
       <button class="btn small light" onclick="if(confirm('Supprimer cette recette ?'))act(()=>api('recipes/delete',{id:'${r.id}'})).then(loadRecipes)">Supprimer</button></div>
   </div>`).join('') || '<div class="empty">Aucune recette ici pour le moment.</div>';
 }
@@ -931,6 +932,10 @@ async function genRecipes() {
 function openCook(id) {
   COOK = RECIPES.find(r => r.id === id);
   dCookAsk.showModal();
+}
+async function cookedDone(msg) {
+  dCookAsk.close();
+  try { await api('recipes/cooked', {id: COOK.id}); if (msg) toast(msg, true); loadRecipes(); } catch (e) { toast('⚠️ ' + e.message); }
 }
 function openCookList() {
   $('#kTitle').textContent = COOK.title;

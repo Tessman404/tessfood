@@ -79,7 +79,7 @@ def new_id():
 
 
 UNDO = []  # instantanés de la base avant chaque modification (en mémoire, 20 derniers)
-UNDO_LABEL = {"/api/suggest/dismiss": "suggestion ignorée", "/api/stock/take": "sortie du stock", "/api/stock/add": "ajout au stock", "/api/stock/open": "produit ouvert",
+UNDO_LABEL = {"/api/recipes/cooked": "recette cuisinée", "/api/suggest/dismiss": "suggestion ignorée", "/api/stock/take": "sortie du stock", "/api/stock/add": "ajout au stock", "/api/stock/open": "produit ouvert",
               "/api/stock/edit": "modification", "/api/product/save": "fiche produit", "/api/product/delete": "suppression du produit",
               "/api/product/merge": "fusion de produits", "/api/check": "vérification", "/api/shopping/update": "liste de courses",
               "/api/shopping/add": "liste de courses", "/api/order/receive": "rangement des courses", "/api/recipes/cook": "recette cuisinée",
@@ -924,7 +924,15 @@ def recipes_view(d):
             ings.append(dict(ing, have=ok, stock=[{"product_id": x["product_id"], "name": x["name"],
                                                     "units": x["units"], "left": round(x["qty"] * x["units"], 1)} for x in m[:3]]))
         score = (have / need if need else 1) + (0.3 if urgent else 0)
-        out.append(dict(r, ingredients=ings, have=have, need=need, missing=need - have,
+        # recette déjà cuisinée : cachée tant que ses produits ne sont pas revenus (rachetés après)
+        cooked = r.get("cooked_at")
+        restocked = False
+        if cooked:
+            pids = {x["product_id"] for i in ings for x in i["stock"]}
+            restocked = (need - have) == 0 and any(
+                m["product_id"] in pids and m["kind"] in ("add", "purchase") and m["ts"] > cooked for m in d["moves"])
+        hidden = bool(cooked) and not restocked
+        out.append(dict(r, ingredients=ings, have=have, need=need, missing=need - have, hidden=hidden,
                         urgent=list(dict.fromkeys(urgent)), score=round(score, 3)))
     out.sort(key=lambda x: (-x["score"], x.get("time", 99)))
     return {"recipes": out, "claude": bool(os.environ.get("ANTHROPIC_API_KEY"))}
@@ -1395,6 +1403,12 @@ def api(method, path, q, body):
             save_db(d)
             sync_alexa_soon()
             return {"ok": True, "added": n}
+        elif path == "/api/recipes/cooked":
+            for r in d.get("recipes", []):
+                if r["id"] == body["id"]:
+                    r["cooked_at"] = None if body.get("reset") else now().isoformat(timespec="seconds")
+            save_db(d)
+            return {"ok": True}
         elif path == "/api/recipes/cook":
             for it in body.get("items", []):
                 p = d["products"].get(it["product_id"])
