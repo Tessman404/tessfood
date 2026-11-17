@@ -417,6 +417,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nb = x => (Math.round(x * 100) / 100).toString().replace('.', ',');
+const nrm = t => (t || '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 let OV = null, PRODUCTS = [], TAB = 'stock', EDIT = null, PROD = null, ORDER = null;
 const ZL = {frigo:'Frigo', congelateur:'Congélateur', placard:'Placards', cellier:'Boissons', maison:'Maison'};
 let ZONE = innerWidth < 700 ? 'frigo' : 'all';
@@ -484,8 +485,8 @@ function badge(id, n) { const b = $(id); b.textContent = n; b.classList.toggle('
 async function loadProducts() {
   PRODUCTS = await api('products');
   $('#dl-products').innerHTML = PRODUCTS.map(p => `<option value="${esc(p.name)}">`).join('');
-  const t = $('#pq').value.toLowerCase();
-  const ps = PRODUCTS.filter(p => !t || (p.name + ' ' + p.brand).toLowerCase().includes(t));
+  const t = nrm($('#pq').value);
+  const ps = PRODUCTS.filter(p => !t || nrm(p.name + ' ' + p.brand).includes(t));
   $('#products').innerHTML = ps.map(p => `<div class="item" onclick="openProd('${p.id}')">${thumb(p)}
     <div class="mid"><div class="name">${esc(p.name)}</div><div class="sub">${esc(p.brand || '')} <span class="tag">${ZL[p.zone] || p.zone}</span>
     ${p.essential ? '<span class="tag g">★ de base</span>' : ''}${p.min_qty ? `<span class="tag g">min ${nb(p.min_qty)}</span>` : ''}${p.drive_name || p.drive_url ? '<span class="tag b">drive</span>' : ''}</div></div>
@@ -514,8 +515,8 @@ function groupHtml(items, z) {
 function renderStock() {
   const keep = [...document.querySelectorAll('#zones .col')].map(c => c.scrollTop);
   setTimeout(() => document.querySelectorAll('#zones .col').forEach((c, i) => { if (keep[i]) c.scrollTop = keep[i]; }), 0);
-  const t = $('#q').value.toLowerCase();
-  const filt = items => items.filter(x => !t || (x.name + ' ' + x.brand + ' ' + x.rayon).toLowerCase().includes(t));
+  const t = nrm($('#q').value);
+  const filt = items => items.filter(x => !t || nrm(x.name + ' ' + x.brand + ' ' + x.rayon).includes(t));
   const zs = Object.keys(OV.zones);
   $('#zchips').innerHTML = `<button data-z="all" class="${ZONE === 'all' ? 'on' : ''}">Tout <small>${zs.reduce((a, z) => a + OV.zones[z].length, 0)}</small></button>` +
     zs.map(z => `<button data-z="${z}" class="${ZONE === z ? 'on' : ''}">${ZL[z] || z} <small>${OV.zones[z].length}</small></button>`).join('');
@@ -545,7 +546,7 @@ function openAdd() { $('#aName').value = ''; $('#aQty').value = 1; $('#aExp').va
 $('#aName').onchange = () => { const p = PRODUCTS.find(p => p.name === $('#aName').value); if (p) $('#aZone').value = p.zone; };
 function doAdd() {
   const name = $('#aName').value.trim(); if (!name) return toast('Indique un produit');
-  const p = PRODUCTS.find(p => p.name.toLowerCase() === name.toLowerCase());
+  const p = PRODUCTS.find(p => nrm(p.name) === nrm(name));
   dAdd.close();
   act(() => api('stock/add', {product_id: p ? p.id : null, name, qty: Math.max(1, Math.round(+$('#aQty').value || 1)), zone: $('#aZone').value, expiry: $('#aExp').value || null}), 'Ajouté au stock');
 }
@@ -872,7 +873,7 @@ async function fixScan(id, what) {
 // sans code-barres : recherche par nom
 $('#sq').oninput = async () => {
   const t = $('#sq').value.trim(); if (t.length < 2) { $('#sres').innerHTML = ''; return; }
-  const all = Object.values(OV.zones).flat().filter(x => (x.name + ' ' + x.brand).toLowerCase().includes(t.toLowerCase())).slice(0, 8);
+  const all = Object.values(OV.zones).flat().filter(x => nrm(x.name + ' ' + x.brand).includes(nrm(t))).slice(0, 8);
   $('#sres').innerHTML = all.map(x => `<div class="item compact">${thumb(x)}<div class="mid"><div class="name">${esc(x.name)}</div><div class="sub">${ZL[Object.keys(OV.zones).find(z => OV.zones[z].includes(x))] || ''} · ${x.units > 1 ? nb(x.units_left) + ' unité(s)' : nb(x.qty)}</div></div>
     <button class="btn small" onclick="manualOut('${x.product_id}')">Choisir</button></div>`).join('') || '<div class="empty">Rien en stock à ce nom.</div>';
 };
