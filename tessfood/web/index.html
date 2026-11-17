@@ -727,7 +727,7 @@ async function getDecoder() {
   await loadLib();
   const Z = ZXing, hints = new Map();
   hints.set(Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.EAN_13, Z.BarcodeFormat.EAN_8, Z.BarcodeFormat.UPC_A,
-    Z.BarcodeFormat.UPC_E, Z.BarcodeFormat.CODE_128, Z.BarcodeFormat.QR_CODE]);
+    Z.BarcodeFormat.UPC_E, Z.BarcodeFormat.CODE_128]);
   hints.set(Z.DecodeHintType.TRY_HARDER, true);  // fouille toute l'image et essaie aussi le code tourné
   const r = new Z.MultiFormatReader(); r.setHints(hints);
   DECODER = c => { try { return r.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(c)))).getText(); }
@@ -751,7 +751,7 @@ async function openScan() {
   try {
     let det = null;
     if ('BarcodeDetector' in window) {
-      try { const f = (await BarcodeDetector.getSupportedFormats()).filter(x => ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'qr_code'].includes(x));
+      try { const f = (await BarcodeDetector.getSupportedFormats()).filter(x => ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128'].includes(x));
         if (f.length) det = new BarcodeDetector({formats: f}); } catch {}
     }
     await getDecoder();
@@ -819,7 +819,7 @@ $('#photoIn').onchange = async e => {
 async function onCode(code) {
   const now = Date.now();
   if (code === LAST.code && now - LAST.seen < 1500) { LAST.seen = now; return; }  // toujours devant la caméra : déjà compté
-  if (BUSY) return;
+  if (BUSY || /:\/\//.test(code)) return;  // QR code / lien : on attend le vrai code-barres
   LAST = {code, seen: now}; BUSY = true;
   try { if (navigator.vibrate) navigator.vibrate(80); } catch {}
   try { const C = new (window.AudioContext || window.webkitAudioContext)(), o = C.createOscillator(); o.frequency.value = 1500; o.connect(C.destination); o.start(); o.stop(C.currentTime + .08); } catch {}
