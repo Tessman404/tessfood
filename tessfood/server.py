@@ -1166,6 +1166,8 @@ def api(method, path, q, body):
             if path == "/api/history":
                 ms = d["moves"][-150:][::-1]
                 return [dict(m, name=d["products"].get(m["product_id"], {}).get("name", "?")) for m in ms]
+            if path == "/api/clientlog":
+                return d["state"].get("clientlog", [])
             if path == "/api/claude":
                 return {"text": claude_text(d)}
             if path == "/api/lookup":
@@ -1358,6 +1360,11 @@ def api(method, path, q, body):
                         d["settings"][k] = v in (True, "true", "1", 1, "on")
                     else:
                         d["settings"][k] = type(DEFAULT_SETTINGS[k])(v) if v != "" or isinstance(DEFAULT_SETTINGS[k], str) else DEFAULT_SETTINGS[k]
+            save_db(d)
+            return {"ok": True}
+        elif path == "/api/clientlog":
+            d["state"].setdefault("clientlog", []).append(dict(body, ts=now().isoformat(timespec="seconds")))
+            d["state"]["clientlog"] = d["state"]["clientlog"][-20:]
             save_db(d)
             return {"ok": True}
         elif path == "/api/recipes/import":

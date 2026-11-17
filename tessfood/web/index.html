@@ -759,7 +759,10 @@ async function openScan() {
   } catch (e) { camError(e); }
 }
 function camError(e) {
-  const n = (e && (e.name || e.message)) || String(e);
+  const n = (e && e.name && e.name !== 'Error' ? e.name : (e && e.message)) || String(e);
+  try { api('clientlog', {where: 'camera', name: e && e.name, message: e && e.message, stack: String(e && e.stack || '').slice(0, 400),
+    ua: navigator.userAgent, md: !!navigator.mediaDevices, gum: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+    zx: !!window.ZXing, secure: window.isSecureContext}); } catch {}
   let why = 'La caméra n’a pas pu démarrer.';
   if (n === 'NOAPI') why = 'Cette appli ne donne pas accès à la caméra en direct (fréquent dans l’appli Home Assistant de l’iPad).';
   else if (n === 'NotAllowedError') why = 'L’accès à la caméra a été refusé. Réglages de l’iPad → Home Assistant (ou Safari) → Caméra → Autoriser.';
@@ -767,7 +770,7 @@ function camError(e) {
   else if (n === 'NotFoundError') why = 'Aucune caméra trouvée.';
   $('#reader').innerHTML = `<div style="padding:16px;color:#fff;display:grid;gap:10px"><b>${esc(why)}</b>
     <span style="opacity:.8">Utilise le bouton « 📷 Prendre une photo du code » juste en dessous : ça marche partout.</span>
-    <small style="opacity:.6">Détail : ${esc(n)}</small></div>`;
+    <small style="opacity:.6">Détail : ${esc(String((e && e.name) || '') + ' ' + String((e && e.message) || n))}</small></div>`;
 }
 function stopNative() { if (NATIVE) { NATIVE.on = false; NATIVE.stream.getTracks().forEach(t => t.stop()); NATIVE = null; } }
 async function closeScan() { stopNative(); dScan.close(); load(); }
