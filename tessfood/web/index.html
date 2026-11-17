@@ -938,8 +938,7 @@ function renderRecipes() {
   </div>`).join('') || '<div class="empty">Aucune recette ici pour le moment.</div>';
 }
 async function genRecipes() {
-  if (!window.CLAUDE) return toast('Ajoute ta clé Anthropic dans la configuration de l’extension, ou demande à Claude dans le chat.');
-  toast('Claude cherche des idées… (≈ 30 s)');
+  toast(window.CLAUDE ? 'Claude cherche des idées… (≈ 30 s)' : 'Je cherche des idées…');
   try { const r = await api('recipes/generate', {wish: $('#wish').value}); toast(r.ok ? r.message : '⚠️ ' + r.message); loadRecipes(); }
   catch (e) { toast('⚠️ ' + e.message); }
 }
