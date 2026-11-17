@@ -440,8 +440,16 @@ def open_stock(d, p, source="app"):
 
 def family_qty(d, p):
     """Stock du produit + des produits identiques sous un autre format (ex. Ricard 70 cl et Ricard 1 L)."""
-    key = norm(p["name"])
-    return sum(stock_qty(d, x["id"]) for x in d["products"].values() if x["id"] == p["id"] or norm(x["name"]) == key)
+    key = base_name(p["name"])
+    return sum(stock_qty(d, x["id"]) for x in d["products"].values() if x["id"] == p["id"] or base_name(x["name"]) == key)
+
+
+def base_name(name):
+    """Nom sans le format : « Ricard 70 cl » et « Ricard 1 L » -> « ricard »."""
+    t = norm(name)
+    t = re.sub(r"\b\d+([ ,.]\d+)?\s*(x|l|cl|ml|g|kg|pieces?|tranches?|pots?|bouteilles?|briques?)\b", " ", t)
+    t = re.sub(r"\b\d+\b", " ", t)
+    return " ".join(t.split())
 
 
 def check_min(d, p):
