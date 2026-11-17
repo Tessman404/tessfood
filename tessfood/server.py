@@ -302,13 +302,23 @@ def product_by_name(d, name):
     n = norm(name)
     if not n:
         return None
-    best = None
+    best, score = None, 0
     for p in d["products"].values():
         pn = norm(p["name"])
         if pn == n:
             return p
-        if n in pn.split() or (len(n) > 3 and (n in pn or pn in n)):
-            best = best or p
+        # « oeufs » -> « Œufs frais » plutôt que « Tagliatelles aux œufs » ; on préfère ce qui est en stock
+        sc = 0
+        if pn.startswith(n + " ") or pn.startswith(n.rstrip("s") + " "):
+            sc = 3
+        elif n in pn.split() or n.rstrip("s") in [w.rstrip("s") for w in pn.split()]:
+            sc = 2
+        elif len(n) > 3 and (n in pn or pn in n):
+            sc = 1
+        if sc and stock_qty(d, p["id"]) > 0:
+            sc += 0.5
+        if sc > score:
+            best, score = p, sc
     return best
 
 
@@ -1222,7 +1232,7 @@ def api(method, path, q, body):
                 if not name:
                     raise ValueError("nom manquant")
                 p = product_by_name(d, name) if not body.get("force_new") else None
-                p = p if p and norm(p["name"]) == norm(name) else make_product(d, name, zone=body.get("zone"))
+                p = p if p and (body.get("match") or norm(p["name"]) == norm(name)) else make_product(d, name, zone=body.get("zone"))
             qty = float(body["units"]) / units_of(p) if body.get("units") else float(body.get("qty") or 1)
             add_stock(d, p, round(qty, 6), body.get("zone"), body.get("expiry"))
             save_db(d)

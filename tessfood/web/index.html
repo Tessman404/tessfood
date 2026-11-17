@@ -105,7 +105,8 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 .board .item>.qty{grid-column:4;grid-row:2;min-width:34px}
 .board .item>.ib:last-of-type{grid-column:5;grid-row:2}
 .board .qty small{display:inline;margin-left:2px}
-.board .col{overflow-y:auto;overscroll-behavior:contain;min-height:0}
+.board .col{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding-bottom:110px}
+section[id^="t-"]{padding-bottom:110px}
 .board .col>h2{position:sticky;top:-8px;background:#f8f4ec;z-index:1;margin:0 -10px;padding:10px 14px 6px;border-radius:18px 18px 0 0}
 @media (max-width:700px){.board{grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;height:auto!important}.board .col{overflow:visible}}
 .col{background:rgba(255,255,255,.55);border:1px solid var(--line);border-radius:18px;padding:8px 10px 12px}
@@ -350,7 +351,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <h3>Ajouter au stock</h3>
   <label>Produit<input id="aName" list="dl-products" placeholder="ex. Yaourts nature" autocomplete="off"></label>
   <div class="grid2">
-    <label>Quantité<input id="aQty" type="number" min="1" step="1" value="1" inputmode="numeric"></label>
+    <label id="aQtyL">Quantité<input id="aQty" type="number" min="1" step="1" value="1" inputmode="numeric"></label>
     <label>Où<select id="aZone"></select></label>
   </div>
   <label>À consommer avant (optionnel)<input id="aExp" type="date"></label>
@@ -542,13 +543,25 @@ $('#pq').oninput = loadProducts;
 const take = (pid, u) => act(() => api('stock/take', u > 1 ? {product_id: pid, units: 1} : {product_id: pid, qty: 1}), 'Sorti du stock');
 const plus = (pid, z, u) => act(() => api('stock/add', u > 1 ? {product_id: pid, units: 1, zone: z} : {product_id: pid, qty: 1, zone: z}), 'Ajouté');
 
-function openAdd() { $('#aName').value = ''; $('#aQty').value = 1; $('#aExp').value = ''; $('#aZone').value = 'frigo'; loadProducts(); dAdd.showModal(); $('#aName').focus(); }
-$('#aName').onchange = () => { const p = PRODUCTS.find(p => p.name === $('#aName').value); if (p) $('#aZone').value = p.zone; };
+function openAdd() { $('#aName').value = ''; $('#aQtyL').firstChild.textContent = 'Quantité'; $('#aQty').value = 1; $('#aExp').value = ''; $('#aZone').value = 'frigo'; loadProducts(); dAdd.showModal(); $('#aName').focus(); }
+function findProd(name) {
+  const n = nrm(name).trim(); if (!n) return null;
+  const inStock = p => p.stock > 0 ? 0.5 : 0;
+  let best = null, sc = 0;
+  for (const p of PRODUCTS) {
+    const pn = nrm(p.name); if (pn === n) return p;
+    let s = pn.startsWith(n + ' ') || pn.startsWith(n.replace(/s$/, '') + ' ') ? 3 : pn.split(' ').map(w => w.replace(/s$/, '')).includes(n.replace(/s$/, '')) ? 2 : 0;
+    if (s) s += inStock(p); if (s > sc) { best = p; sc = s; }
+  }
+  return best;
+}
+$('#aName').oninput = $('#aName').onchange = () => { const p = findProd($('#aName').value); if (p && p.zone) $('#aZone').value = p.zone;
+  $('#aQtyL').firstChild.textContent = p && p.units > 1 ? `Combien (à l'unité, ${p.units} par paquet)` : 'Quantité'; };
 function doAdd() {
   const name = $('#aName').value.trim(); if (!name) return toast('Indique un produit');
-  const p = PRODUCTS.find(p => nrm(p.name) === nrm(name));
+  const p = findProd(name), n = Math.max(1, Math.round(+$('#aQty').value || 1));
   dAdd.close();
-  act(() => api('stock/add', {product_id: p ? p.id : null, name, qty: Math.max(1, Math.round(+$('#aQty').value || 1)), zone: $('#aZone').value, expiry: $('#aExp').value || null}), 'Ajouté au stock');
+  act(() => api('stock/add', {product_id: p ? p.id : null, name, ...(p && p.units > 1 ? {units: n} : {qty: n}), zone: $('#aZone').value, expiry: $('#aExp').value || null}), p ? 'Ajouté à « ' + p.name + ' »' : 'Ajouté au stock');
 }
 function openEdit(sid) {
   for (const items of Object.values(OV.zones)) { const x = items.find(i => i.stock_id === sid); if (x) EDIT = x; }
