@@ -1,0 +1,2558 @@
+[
+{
+"title": "Hachis parmentier",
+"time": 50,
+"servings": 3,
+"tags": [
+"four",
+"famille"
+],
+"ingredients": [
+{
+"name": "Viande hachée",
+"qty": "0,4 kg",
+"match": [
+"hache",
+"steak hache"
+],
+"optional": false
+},
+{
+"name": "Pommes de terre",
+"qty": "1 kg",
+"match": [
+"pomme de terre",
+"puree"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,2 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental"
+],
+"optional": true
+}
+],
+"steps": [
+"Cuire les pommes de terre 20 min à l'eau salée et les écraser avec le lait et le beurre.",
+"Faire revenir l'oignon émincé puis la viande hachée, saler, poivrer.",
+"Mettre la viande dans un plat, couvrir de purée et d'emmental.",
+"Gratiner 20 min à 200 °C."
+]
+},
+{
+"title": "Spaghetti bolognaise",
+"time": 35,
+"servings": 3,
+"tags": [
+"pâtes",
+"rapide",
+"famille"
+],
+"ingredients": [
+{
+"name": "Spaghetti",
+"qty": "0,4 kg",
+"match": [
+"spaghetti",
+"pates"
+],
+"optional": false
+},
+{
+"name": "Viande hachée",
+"qty": "0,3 kg",
+"match": [
+"hache",
+"steak hache"
+],
+"optional": false
+},
+{
+"name": "Sauce tomate",
+"qty": "1 pot",
+"match": [
+"sauce tomate",
+"coulis",
+"tomate"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental",
+"parmesan"
+],
+"optional": true
+}
+],
+"steps": [
+"Faire revenir l'oignon puis la viande hachée.",
+"Ajouter la sauce tomate et laisser mijoter 15 min.",
+"Cuire les spaghetti, égoutter et servir avec la sauce et le fromage."
+]
+},
+{
+"title": "Omelette aux lardons et pommes de terre",
+"time": 25,
+"servings": 3,
+"tags": [
+"rapide",
+"œufs"
+],
+"ingredients": [
+{
+"name": "Œufs",
+"qty": "6",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Lardons",
+"qty": "0,15 kg",
+"match": [
+"lardon",
+"allumette"
+],
+"optional": false
+},
+{
+"name": "Pommes de terre",
+"qty": "3",
+"match": [
+"pomme de terre"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "1 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les pommes de terre en dés à la poêle avec le beurre 12 min.",
+"Ajouter les lardons et dorer 3 min.",
+"Verser les œufs battus, cuire à feu doux et servir."
+]
+},
+{
+"title": "Quiche lorraine",
+"time": 50,
+"servings": 3,
+"tags": [
+"four",
+"œufs"
+],
+"ingredients": [
+{
+"name": "Pâte brisée",
+"qty": "1",
+"match": [
+"pate brisee",
+"pate feuilletee"
+],
+"optional": false
+},
+{
+"name": "Lardons",
+"qty": "0,2 kg",
+"match": [
+"lardon",
+"allumette"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,2 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental"
+],
+"optional": true
+}
+],
+"steps": [
+"Étaler la pâte dans un moule.",
+"Faire dorer les lardons à sec.",
+"Battre œufs, crème et lait, ajouter lardons et emmental.",
+"Verser sur la pâte et cuire 35 min à 180 °C."
+]
+},
+{
+"title": "Croque-monsieur",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"four"
+],
+"ingredients": [
+{
+"name": "Pain de mie",
+"qty": "8 tranches",
+"match": [
+"pain de mie"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "4 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Emmental",
+"qty": "4 tranches",
+"match": [
+"emmental",
+"fromage"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Beurrer le pain de mie.",
+"Garnir de jambon et de fromage, refermer.",
+"Cuire 10 min à 200 °C ou à la poêle et servir chaud."
+]
+},
+{
+"title": "Gratin dauphinois",
+"time": 70,
+"servings": 3,
+"tags": [
+"four",
+"accompagnement"
+],
+"ingredients": [
+{
+"name": "Pommes de terre",
+"qty": "1 kg",
+"match": [
+"pomme de terre"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "2 briques",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,3 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Ail",
+"qty": "1 gousse",
+"match": [
+"ail"
+],
+"optional": true
+},
+{
+"name": "Beurre",
+"qty": "1 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Éplucher et couper les pommes de terre en fines rondelles.",
+"Frotter un plat à l'ail et le beurrer.",
+"Disposer les pommes de terre, couvrir de crème et de lait salés, poivrés.",
+"Cuire 1 h à 170 °C."
+]
+},
+{
+"title": "Poulet à la crème et champignons",
+"time": 35,
+"servings": 3,
+"tags": [
+"poêle",
+"famille"
+],
+"ingredients": [
+{
+"name": "Escalopes de poulet",
+"qty": "3",
+"match": [
+"poulet",
+"escalope"
+],
+"optional": false
+},
+{
+"name": "Champignons",
+"qty": "0,25 kg",
+"match": [
+"champignon"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Riz",
+"qty": "0,25 kg",
+"match": [
+"riz"
+],
+"optional": true
+}
+],
+"steps": [
+"Dorer le poulet coupé en morceaux.",
+"Ajouter l'oignon et les champignons, cuire 8 min.",
+"Verser la crème, laisser mijoter 10 min.",
+"Servir avec du riz."
+]
+},
+{
+"title": "Riz cantonais",
+"time": 25,
+"servings": 3,
+"tags": [
+"rapide",
+"riz"
+],
+"ingredients": [
+{
+"name": "Riz",
+"qty": "0,3 kg",
+"match": [
+"riz"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "3 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Petits pois",
+"qty": "0,15 kg",
+"match": [
+"petits pois"
+],
+"optional": false
+},
+{
+"name": "Sauce soja",
+"qty": "2 càs",
+"match": [
+"soja"
+],
+"optional": true
+}
+],
+"steps": [
+"Cuire le riz et le laisser refroidir.",
+"Faire une omelette fine et la couper en lanières.",
+"Faire sauter le riz avec le jambon en dés, les petits pois et l'omelette.",
+"Assaisonner de sauce soja."
+]
+},
+{
+"title": "Pâtes au saumon",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"pâtes",
+"poisson"
+],
+"ingredients": [
+{
+"name": "Pâtes",
+"qty": "0,4 kg",
+"match": [
+"pates",
+"tagliatelle",
+"penne",
+"farfalle"
+],
+"optional": false
+},
+{
+"name": "Saumon",
+"qty": "0,2 kg",
+"match": [
+"saumon"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Citron",
+"qty": "1",
+"match": [
+"citron"
+],
+"optional": true
+}
+],
+"steps": [
+"Cuire les pâtes.",
+"Chauffer la crème avec le saumon en morceaux 5 min.",
+"Mélanger avec les pâtes, ajouter un filet de citron."
+]
+},
+{
+"title": "Gratin de pâtes jambon fromage",
+"time": 35,
+"servings": 3,
+"tags": [
+"four",
+"pâtes",
+"famille"
+],
+"ingredients": [
+{
+"name": "Pâtes",
+"qty": "0,4 kg",
+"match": [
+"pates",
+"coquillette",
+"penne",
+"macaroni"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "4 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "0,1 kg",
+"match": [
+"emmental"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les pâtes un peu fermes.",
+"Mélanger avec le jambon en dés et la crème.",
+"Couvrir d'emmental et gratiner 15 min à 200 °C."
+]
+},
+{
+"title": "Croziflette",
+"time": 45,
+"servings": 3,
+"tags": [
+"four",
+"savoyard"
+],
+"ingredients": [
+{
+"name": "Crozets",
+"qty": "0,4 kg",
+"match": [
+"crozet"
+],
+"optional": false
+},
+{
+"name": "Lardons",
+"qty": "0,2 kg",
+"match": [
+"lardon"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Reblochon",
+"qty": "1",
+"match": [
+"reblochon",
+"coulommiers"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les crozets 15 min.",
+"Faire revenir oignon et lardons.",
+"Mélanger dans un plat avec la crème, couvrir de fromage.",
+"Enfourner 20 min à 200 °C."
+]
+},
+{
+"title": "Tartiflette",
+"time": 50,
+"servings": 3,
+"tags": [
+"four",
+"savoyard"
+],
+"ingredients": [
+{
+"name": "Pommes de terre",
+"qty": "1 kg",
+"match": [
+"pomme de terre"
+],
+"optional": false
+},
+{
+"name": "Lardons",
+"qty": "0,2 kg",
+"match": [
+"lardon"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Reblochon",
+"qty": "1",
+"match": [
+"reblochon"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": true
+}
+],
+"steps": [
+"Cuire les pommes de terre et les couper en rondelles.",
+"Faire revenir oignon et lardons.",
+"Mettre le tout dans un plat avec la crème, le reblochon coupé en deux par-dessus.",
+"Cuire 25 min à 200 °C."
+]
+},
+{
+"title": "Steak haché frites maison",
+"time": 35,
+"servings": 3,
+"tags": [
+"rapide",
+"famille"
+],
+"ingredients": [
+{
+"name": "Steaks hachés",
+"qty": "3",
+"match": [
+"steak hache"
+],
+"optional": false
+},
+{
+"name": "Pommes de terre",
+"qty": "1 kg",
+"match": [
+"pomme de terre",
+"frite"
+],
+"optional": false
+},
+{
+"name": "Huile",
+"qty": "4 càs",
+"match": [
+"huile"
+],
+"optional": false
+}
+],
+"steps": [
+"Couper les pommes de terre en frites, les mélanger à l'huile.",
+"Cuire 30 min à 220 °C en les retournant.",
+"Cuire les steaks à la poêle 3 min par face."
+]
+},
+{
+"title": "Soupe de légumes",
+"time": 40,
+"servings": 3,
+"tags": [
+"soupe",
+"léger"
+],
+"ingredients": [
+{
+"name": "Carottes",
+"qty": "3",
+"match": [
+"carotte"
+],
+"optional": false
+},
+{
+"name": "Pommes de terre",
+"qty": "2",
+"match": [
+"pomme de terre"
+],
+"optional": false
+},
+{
+"name": "Poireau",
+"qty": "1",
+"match": [
+"poireau"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Bouillon",
+"qty": "1 cube",
+"match": [
+"bouillon"
+],
+"optional": false
+}
+],
+"steps": [
+"Éplucher et couper les légumes.",
+"Les couvrir d'eau avec le bouillon et cuire 30 min.",
+"Mixer et servir."
+]
+},
+{
+"title": "Velouté de potiron",
+"time": 40,
+"servings": 3,
+"tags": [
+"soupe",
+"léger"
+],
+"ingredients": [
+{
+"name": "Potiron",
+"qty": "1 kg",
+"match": [
+"potiron",
+"courge",
+"butternut"
+],
+"optional": false
+},
+{
+"name": "Pomme de terre",
+"qty": "1",
+"match": [
+"pomme de terre"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "2 càs",
+"match": [
+"creme"
+],
+"optional": true
+},
+{
+"name": "Bouillon",
+"qty": "1 cube",
+"match": [
+"bouillon"
+],
+"optional": false
+}
+],
+"steps": [
+"Couper potiron, pomme de terre et oignon.",
+"Cuire 25 min dans l'eau avec le bouillon.",
+"Mixer avec la crème."
+]
+},
+{
+"title": "Crêpes",
+"time": 30,
+"servings": 3,
+"tags": [
+"dessert",
+"goûter"
+],
+"ingredients": [
+{
+"name": "Farine",
+"qty": "0,25 kg",
+"match": [
+"farine"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "4",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,5 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "1 càs",
+"match": [
+"sucre"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Mélanger farine, sucre et œufs, puis ajouter le lait petit à petit.",
+"Ajouter le beurre fondu, laisser reposer si possible.",
+"Cuire les crêpes dans une poêle chaude."
+]
+},
+{
+"title": "Galettes complètes",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"breton"
+],
+"ingredients": [
+{
+"name": "Galettes de blé noir",
+"qty": "3",
+"match": [
+"galette"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "3 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "6 càs",
+"match": [
+"emmental"
+],
+"optional": false
+}
+],
+"steps": [
+"Chauffer la galette dans une poêle beurrée.",
+"Mettre l'emmental, le jambon et casser un œuf au centre.",
+"Replier les bords et cuire jusqu'à ce que l'œuf soit pris."
+]
+},
+{
+"title": "Gâteau au yaourt",
+"time": 45,
+"servings": 3,
+"tags": [
+"dessert",
+"goûter"
+],
+"ingredients": [
+{
+"name": "Yaourt nature",
+"qty": "1",
+"match": [
+"yaourt"
+],
+"optional": false
+},
+{
+"name": "Farine",
+"qty": "3 pots",
+"match": [
+"farine"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "2 pots",
+"match": [
+"sucre"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Huile",
+"qty": "1/2 pot",
+"match": [
+"huile"
+],
+"optional": false
+},
+{
+"name": "Levure",
+"qty": "1 sachet",
+"match": [
+"levure"
+],
+"optional": false
+}
+],
+"steps": [
+"Mélanger le yaourt, le sucre et les œufs.",
+"Ajouter la farine, la levure puis l'huile.",
+"Verser dans un moule et cuire 35 min à 180 °C."
+]
+},
+{
+"title": "Gâteau au chocolat",
+"time": 40,
+"servings": 3,
+"tags": [
+"dessert",
+"goûter"
+],
+"ingredients": [
+{
+"name": "Chocolat",
+"qty": "0,2 kg",
+"match": [
+"chocolat"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "0,1 kg",
+"match": [
+"beurre"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "0,1 kg",
+"match": [
+"sucre"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Farine",
+"qty": "3 càs",
+"match": [
+"farine"
+],
+"optional": false
+}
+],
+"steps": [
+"Fondre le chocolat avec le beurre.",
+"Ajouter le sucre, les œufs puis la farine.",
+"Cuire 25 min à 180 °C."
+]
+},
+{
+"title": "Pain perdu",
+"time": 15,
+"servings": 3,
+"tags": [
+"dessert",
+"anti-gaspi"
+],
+"ingredients": [
+{
+"name": "Pain",
+"qty": "6 tranches",
+"match": [
+"pain",
+"brioche"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "2",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,25 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "2 càs",
+"match": [
+"sucre"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "1 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Battre les œufs avec le lait et le sucre.",
+"Tremper le pain dedans.",
+"Dorer à la poêle dans le beurre."
+]
+},
+{
+"title": "Riz au lait",
+"time": 45,
+"servings": 3,
+"tags": [
+"dessert"
+],
+"ingredients": [
+{
+"name": "Riz rond",
+"qty": "0,15 kg",
+"match": [
+"riz"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "1 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "0,1 kg",
+"match": [
+"sucre"
+],
+"optional": false
+},
+{
+"name": "Vanille",
+"qty": "1 sachet",
+"match": [
+"vanille"
+],
+"optional": true
+}
+],
+"steps": [
+"Porter le lait à ébullition avec la vanille.",
+"Ajouter le riz et cuire 35 min à feu doux en remuant.",
+"Ajouter le sucre en fin de cuisson."
+]
+},
+{
+"title": "Salade de pâtes",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"froid"
+],
+"ingredients": [
+{
+"name": "Pâtes",
+"qty": "0,3 kg",
+"match": [
+"pates",
+"farfalle",
+"penne",
+"coquillette"
+],
+"optional": false
+},
+{
+"name": "Thon",
+"qty": "1 boîte",
+"match": [
+"thon"
+],
+"optional": false
+},
+{
+"name": "Tomates",
+"qty": "2",
+"match": [
+"tomate"
+],
+"optional": false
+},
+{
+"name": "Maïs",
+"qty": "1 boîte",
+"match": [
+"mais"
+],
+"optional": true
+},
+{
+"name": "Mayonnaise",
+"qty": "2 càs",
+"match": [
+"mayonnaise",
+"vinaigrette"
+],
+"optional": true
+}
+],
+"steps": [
+"Cuire et refroidir les pâtes.",
+"Mélanger avec le thon, les tomates en dés et le maïs.",
+"Assaisonner."
+]
+},
+{
+"title": "Pizza maison",
+"time": 30,
+"servings": 3,
+"tags": [
+"four",
+"famille"
+],
+"ingredients": [
+{
+"name": "Pâte à pizza",
+"qty": "1",
+"match": [
+"pate a pizza"
+],
+"optional": false
+},
+{
+"name": "Sauce tomate",
+"qty": "4 càs",
+"match": [
+"sauce tomate",
+"coulis"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "3 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Mozzarella",
+"qty": "1",
+"match": [
+"mozzarella",
+"emmental"
+],
+"optional": false
+},
+{
+"name": "Champignons",
+"qty": "0,1 kg",
+"match": [
+"champignon"
+],
+"optional": true
+}
+],
+"steps": [
+"Étaler la pâte, la couvrir de sauce tomate.",
+"Ajouter jambon, champignons et fromage.",
+"Cuire 15 min à 240 °C."
+]
+},
+{
+"title": "Chili con carne",
+"time": 45,
+"servings": 3,
+"tags": [
+"épicé",
+"famille"
+],
+"ingredients": [
+{
+"name": "Viande hachée",
+"qty": "0,4 kg",
+"match": [
+"hache"
+],
+"optional": false
+},
+{
+"name": "Haricots rouges",
+"qty": "1 boîte",
+"match": [
+"haricots rouges"
+],
+"optional": false
+},
+{
+"name": "Tomates concassées",
+"qty": "1 boîte",
+"match": [
+"tomate"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Riz",
+"qty": "0,3 kg",
+"match": [
+"riz"
+],
+"optional": false
+},
+{
+"name": "Épices chili",
+"qty": "1 càc",
+"match": [
+"chili",
+"cumin",
+"paprika"
+],
+"optional": true
+}
+],
+"steps": [
+"Faire revenir l'oignon puis la viande.",
+"Ajouter tomates, haricots égouttés et épices, mijoter 25 min.",
+"Servir avec du riz."
+]
+},
+{
+"title": "Lasagnes",
+"time": 75,
+"servings": 3,
+"tags": [
+"four",
+"famille"
+],
+"ingredients": [
+{
+"name": "Plaques de lasagne",
+"qty": "0,25 kg",
+"match": [
+"lasagne"
+],
+"optional": false
+},
+{
+"name": "Viande hachée",
+"qty": "0,4 kg",
+"match": [
+"hache"
+],
+"optional": false
+},
+{
+"name": "Sauce tomate",
+"qty": "1 pot",
+"match": [
+"sauce tomate"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,5 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+},
+{
+"name": "Farine",
+"qty": "2 càs",
+"match": [
+"farine"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "0,1 kg",
+"match": [
+"emmental"
+],
+"optional": false
+}
+],
+"steps": [
+"Préparer une bolognaise avec la viande et la sauce tomate.",
+"Faire une béchamel avec beurre, farine et lait.",
+"Alterner plaques, bolognaise et béchamel, finir par le fromage.",
+"Cuire 40 min à 180 °C."
+]
+},
+{
+"title": "Blanquette de dinde express",
+"time": 40,
+"servings": 3,
+"tags": [
+"poêle",
+"famille"
+],
+"ingredients": [
+{
+"name": "Escalopes de dinde",
+"qty": "3",
+"match": [
+"dinde",
+"poulet"
+],
+"optional": false
+},
+{
+"name": "Carottes",
+"qty": "2",
+"match": [
+"carotte"
+],
+"optional": false
+},
+{
+"name": "Champignons",
+"qty": "0,2 kg",
+"match": [
+"champignon"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Bouillon",
+"qty": "1 cube",
+"match": [
+"bouillon"
+],
+"optional": false
+},
+{
+"name": "Riz",
+"qty": "0,25 kg",
+"match": [
+"riz"
+],
+"optional": false
+}
+],
+"steps": [
+"Dorer la viande en morceaux.",
+"Ajouter carottes, champignons et bouillon dilué dans un verre d'eau, cuire 20 min.",
+"Lier avec la crème, servir avec du riz."
+]
+},
+{
+"title": "Saucisses lentilles",
+"time": 40,
+"servings": 3,
+"tags": [
+"mijoté",
+"famille"
+],
+"ingredients": [
+{
+"name": "Saucisses",
+"qty": "4",
+"match": [
+"saucisse",
+"morteau",
+"toulouse"
+],
+"optional": false
+},
+{
+"name": "Lentilles",
+"qty": "0,3 kg",
+"match": [
+"lentille"
+],
+"optional": false
+},
+{
+"name": "Carotte",
+"qty": "1",
+"match": [
+"carotte"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les lentilles 25 min avec carotte et oignon.",
+"Dorer les saucisses à la poêle.",
+"Servir ensemble."
+]
+},
+{
+"title": "Poisson pané et purée",
+"time": 30,
+"servings": 3,
+"tags": [
+"rapide",
+"poisson"
+],
+"ingredients": [
+{
+"name": "Poisson pané",
+"qty": "3",
+"match": [
+"pane",
+"poisson"
+],
+"optional": false
+},
+{
+"name": "Pommes de terre",
+"qty": "0,8 kg",
+"match": [
+"pomme de terre",
+"puree"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,2 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Préparer une purée avec pommes de terre, lait et beurre.",
+"Cuire le poisson pané au four ou à la poêle."
+]
+},
+{
+"title": "Cordon bleu, haricots verts",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide"
+],
+"ingredients": [
+{
+"name": "Cordons bleus",
+"qty": "3",
+"match": [
+"cordon bleu"
+],
+"optional": false
+},
+{
+"name": "Haricots verts",
+"qty": "0,5 kg",
+"match": [
+"haricots verts"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "1 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les cordons bleus à la poêle 10 min.",
+"Réchauffer les haricots verts au beurre."
+]
+},
+{
+"title": "Hot-dogs maison",
+"time": 15,
+"servings": 3,
+"tags": [
+"rapide"
+],
+"ingredients": [
+{
+"name": "Pains à hot-dog",
+"qty": "4",
+"match": [
+"pain hot dog",
+"baguette"
+],
+"optional": false
+},
+{
+"name": "Saucisses de Strasbourg",
+"qty": "4",
+"match": [
+"knack",
+"strasbourg",
+"saucisse"
+],
+"optional": false
+},
+{
+"name": "Moutarde",
+"qty": "2 càc",
+"match": [
+"moutarde"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental"
+],
+"optional": true
+}
+],
+"steps": [
+"Chauffer les saucisses 5 min dans l'eau frémissante.",
+"Les glisser dans le pain avec moutarde et fromage.",
+"Passer 5 min au four."
+]
+},
+{
+"title": "Œufs cocotte",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"œufs"
+],
+"ingredients": [
+{
+"name": "Œufs",
+"qty": "4",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "4 càs",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "2 tranches",
+"match": [
+"jambon"
+],
+"optional": true
+},
+{
+"name": "Emmental râpé",
+"qty": "2 càs",
+"match": [
+"emmental"
+],
+"optional": true
+}
+],
+"steps": [
+"Mettre jambon et crème dans des ramequins.",
+"Casser un œuf dans chacun, ajouter le fromage.",
+"Cuire 10 min au bain-marie à 180 °C."
+]
+},
+{
+"title": "Tagliatelles carbonara",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"pâtes"
+],
+"ingredients": [
+{
+"name": "Tagliatelles",
+"qty": "0,4 kg",
+"match": [
+"tagliatelle",
+"spaghetti"
+],
+"optional": false
+},
+{
+"name": "Lardons",
+"qty": "0,2 kg",
+"match": [
+"lardon",
+"allumette"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "2",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental",
+"parmesan"
+],
+"optional": false
+}
+],
+"steps": [
+"Faire dorer les lardons.",
+"Cuire les pâtes.",
+"Mélanger crème, œufs et fromage avec les lardons hors du feu, ajouter les pâtes."
+]
+},
+{
+"title": "Gnocchis à la crème et lardons",
+"time": 15,
+"servings": 3,
+"tags": [
+"rapide"
+],
+"ingredients": [
+{
+"name": "Gnocchis",
+"qty": "0,5 kg",
+"match": [
+"gnocchi"
+],
+"optional": false
+},
+{
+"name": "Lardons",
+"qty": "0,15 kg",
+"match": [
+"lardon",
+"allumette"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental"
+],
+"optional": true
+}
+],
+"steps": [
+"Dorer les gnocchis et les lardons à la poêle.",
+"Ajouter la crème, laisser réduire 3 min.",
+"Servir avec le fromage."
+]
+},
+{
+"title": "Wraps poulet",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide",
+"froid"
+],
+"ingredients": [
+{
+"name": "Tortillas",
+"qty": "4",
+"match": [
+"tortilla",
+"wrap"
+],
+"optional": false
+},
+{
+"name": "Poulet",
+"qty": "0,3 kg",
+"match": [
+"poulet"
+],
+"optional": false
+},
+{
+"name": "Salade",
+"qty": "1",
+"match": [
+"salade"
+],
+"optional": false
+},
+{
+"name": "Tomate",
+"qty": "1",
+"match": [
+"tomate"
+],
+"optional": false
+},
+{
+"name": "Sauce",
+"qty": "2 càs",
+"match": [
+"mayonnaise",
+"sauce"
+],
+"optional": true
+}
+],
+"steps": [
+"Cuire le poulet en lamelles.",
+"Garnir les tortillas de salade, tomate, poulet et sauce.",
+"Rouler et servir."
+]
+},
+{
+"title": "Couscous express",
+"time": 40,
+"servings": 3,
+"tags": [
+"famille"
+],
+"ingredients": [
+{
+"name": "Semoule",
+"qty": "0,3 kg",
+"match": [
+"semoule",
+"couscous"
+],
+"optional": false
+},
+{
+"name": "Merguez",
+"qty": "4",
+"match": [
+"merguez"
+],
+"optional": false
+},
+{
+"name": "Carottes",
+"qty": "2",
+"match": [
+"carotte"
+],
+"optional": false
+},
+{
+"name": "Courgette",
+"qty": "1",
+"match": [
+"courgette"
+],
+"optional": false
+},
+{
+"name": "Pois chiches",
+"qty": "1 boîte",
+"match": [
+"pois chiche"
+],
+"optional": true
+},
+{
+"name": "Bouillon",
+"qty": "1 cube",
+"match": [
+"bouillon"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire carottes et courgette 20 min dans le bouillon avec les pois chiches.",
+"Griller les merguez.",
+"Préparer la semoule et servir le tout."
+]
+},
+{
+"title": "Ratatouille",
+"time": 60,
+"servings": 3,
+"tags": [
+"légumes",
+"léger"
+],
+"ingredients": [
+{
+"name": "Courgettes",
+"qty": "2",
+"match": [
+"courgette"
+],
+"optional": false
+},
+{
+"name": "Aubergine",
+"qty": "1",
+"match": [
+"aubergine"
+],
+"optional": false
+},
+{
+"name": "Poivron",
+"qty": "1",
+"match": [
+"poivron"
+],
+"optional": false
+},
+{
+"name": "Tomates",
+"qty": "3",
+"match": [
+"tomate"
+],
+"optional": false
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+},
+{
+"name": "Huile d'olive",
+"qty": "3 càs",
+"match": [
+"huile"
+],
+"optional": false
+}
+],
+"steps": [
+"Couper tous les légumes en dés.",
+"Les faire revenir séparément dans l'huile.",
+"Réunir et mijoter 30 min."
+]
+},
+{
+"title": "Purée et jambon",
+"time": 25,
+"servings": 3,
+"tags": [
+"rapide",
+"enfant"
+],
+"ingredients": [
+{
+"name": "Pommes de terre",
+"qty": "0,8 kg",
+"match": [
+"pomme de terre",
+"puree"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,2 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "3 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire et écraser les pommes de terre avec le lait et le beurre.",
+"Servir avec le jambon."
+]
+},
+{
+"title": "Croque-madame",
+"time": 20,
+"servings": 3,
+"tags": [
+"rapide"
+],
+"ingredients": [
+{
+"name": "Pain de mie",
+"qty": "6 tranches",
+"match": [
+"pain de mie"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "3 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Emmental",
+"qty": "3 tranches",
+"match": [
+"emmental"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+}
+],
+"steps": [
+"Préparer des croque-monsieur et les cuire.",
+"Poser un œuf au plat sur chacun."
+]
+},
+{
+"title": "Clafoutis aux fruits",
+"time": 50,
+"servings": 3,
+"tags": [
+"dessert"
+],
+"ingredients": [
+{
+"name": "Fruits",
+"qty": "0,5 kg",
+"match": [
+"cerise",
+"pomme",
+"poire",
+"abricot",
+"fruit"
+],
+"optional": false
+},
+{
+"name": "Œufs",
+"qty": "3",
+"match": [
+"oeuf"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,3 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Farine",
+"qty": "0,08 kg",
+"match": [
+"farine"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "0,08 kg",
+"match": [
+"sucre"
+],
+"optional": false
+}
+],
+"steps": [
+"Mettre les fruits dans un plat beurré.",
+"Mélanger œufs, sucre, farine et lait.",
+"Verser sur les fruits et cuire 35 min à 180 °C."
+]
+},
+{
+"title": "Compote de pommes",
+"time": 25,
+"servings": 3,
+"tags": [
+"dessert",
+"anti-gaspi"
+],
+"ingredients": [
+{
+"name": "Pommes",
+"qty": "1 kg",
+"match": [
+"pomme"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "2 càs",
+"match": [
+"sucre"
+],
+"optional": true
+},
+{
+"name": "Cannelle",
+"qty": "1 càc",
+"match": [
+"cannelle"
+],
+"optional": true
+}
+],
+"steps": [
+"Éplucher et couper les pommes.",
+"Cuire 20 min avec un fond d'eau et le sucre.",
+"Écraser à la fourchette."
+]
+},
+{
+"title": "Tarte aux pommes",
+"time": 50,
+"servings": 3,
+"tags": [
+"dessert",
+"four"
+],
+"ingredients": [
+{
+"name": "Pâte brisée",
+"qty": "1",
+"match": [
+"pate brisee",
+"pate feuilletee"
+],
+"optional": false
+},
+{
+"name": "Pommes",
+"qty": "4",
+"match": [
+"pomme"
+],
+"optional": false
+},
+{
+"name": "Sucre",
+"qty": "3 càs",
+"match": [
+"sucre"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "1 càs",
+"match": [
+"beurre"
+],
+"optional": true
+}
+],
+"steps": [
+"Étaler la pâte dans un moule.",
+"Disposer les pommes en lamelles, saupoudrer de sucre.",
+"Cuire 35 min à 190 °C."
+]
+},
+{
+"title": "Endives au jambon",
+"time": 50,
+"servings": 3,
+"tags": [
+"four",
+"famille"
+],
+"ingredients": [
+{
+"name": "Endives",
+"qty": "6",
+"match": [
+"endive"
+],
+"optional": false
+},
+{
+"name": "Jambon",
+"qty": "6 tranches",
+"match": [
+"jambon"
+],
+"optional": false
+},
+{
+"name": "Lait",
+"qty": "0,5 kg",
+"match": [
+"lait"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+},
+{
+"name": "Farine",
+"qty": "2 càs",
+"match": [
+"farine"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les endives 15 min et bien les égoutter.",
+"Rouler chaque endive dans une tranche de jambon.",
+"Napper de béchamel et de fromage, gratiner 20 min à 200 °C."
+]
+},
+{
+"title": "Cabillaud à la crème et riz",
+"time": 30,
+"servings": 3,
+"tags": [
+"poisson"
+],
+"ingredients": [
+{
+"name": "Cabillaud",
+"qty": "3 filets",
+"match": [
+"cabillaud",
+"colin",
+"poisson blanc"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": false
+},
+{
+"name": "Citron",
+"qty": "1",
+"match": [
+"citron"
+],
+"optional": true
+},
+{
+"name": "Riz",
+"qty": "0,25 kg",
+"match": [
+"riz"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire le riz.",
+"Poêler le poisson 4 min par face.",
+"Ajouter la crème et le jus de citron, chauffer 2 min."
+]
+},
+{
+"title": "Steak, pâtes au beurre",
+"time": 15,
+"servings": 3,
+"tags": [
+"rapide",
+"enfant"
+],
+"ingredients": [
+{
+"name": "Steaks hachés",
+"qty": "3",
+"match": [
+"steak hache"
+],
+"optional": false
+},
+{
+"name": "Pâtes",
+"qty": "0,3 kg",
+"match": [
+"pates",
+"coquillette"
+],
+"optional": false
+},
+{
+"name": "Beurre",
+"qty": "2 càs",
+"match": [
+"beurre"
+],
+"optional": false
+}
+],
+"steps": [
+"Cuire les pâtes et les mélanger au beurre.",
+"Cuire les steaks à la poêle."
+]
+},
+{
+"title": "Raviolis gratinés",
+"time": 25,
+"servings": 3,
+"tags": [
+"four",
+"rapide"
+],
+"ingredients": [
+{
+"name": "Raviolis",
+"qty": "0,6 kg",
+"match": [
+"ravioli"
+],
+"optional": false
+},
+{
+"name": "Crème",
+"qty": "1 brique",
+"match": [
+"creme"
+],
+"optional": true
+},
+{
+"name": "Emmental râpé",
+"qty": "0,1 kg",
+"match": [
+"emmental"
+],
+"optional": false
+}
+],
+"steps": [
+"Mettre les raviolis dans un plat avec la crème.",
+"Couvrir d'emmental et gratiner 15 min à 200 °C."
+]
+},
+{
+"title": "Tarte thon tomate moutarde",
+"time": 45,
+"servings": 3,
+"tags": [
+"four"
+],
+"ingredients": [
+{
+"name": "Pâte brisée",
+"qty": "1",
+"match": [
+"pate brisee",
+"pate feuilletee"
+],
+"optional": false
+},
+{
+"name": "Thon",
+"qty": "1 boîte",
+"match": [
+"thon"
+],
+"optional": false
+},
+{
+"name": "Tomates",
+"qty": "3",
+"match": [
+"tomate"
+],
+"optional": false
+},
+{
+"name": "Moutarde",
+"qty": "2 càs",
+"match": [
+"moutarde"
+],
+"optional": false
+},
+{
+"name": "Emmental râpé",
+"qty": "4 càs",
+"match": [
+"emmental"
+],
+"optional": false
+}
+],
+"steps": [
+"Étaler la pâte et la tartiner de moutarde.",
+"Ajouter le thon émietté, les tomates en rondelles et le fromage.",
+"Cuire 30 min à 200 °C."
+]
+},
+{
+"title": "Poêlée de légumes et saucisses",
+"time": 30,
+"servings": 3,
+"tags": [
+"poêle"
+],
+"ingredients": [
+{
+"name": "Saucisses",
+"qty": "4",
+"match": [
+"saucisse",
+"chipolata"
+],
+"optional": false
+},
+{
+"name": "Pommes de terre",
+"qty": "0,6 kg",
+"match": [
+"pomme de terre"
+],
+"optional": false
+},
+{
+"name": "Poivron",
+"qty": "1",
+"match": [
+"poivron"
+],
+"optional": true
+},
+{
+"name": "Oignon",
+"qty": "1",
+"match": [
+"oignon"
+],
+"optional": false
+}
+],
+"steps": [
+"Couper pommes de terre et légumes en dés.",
+"Les cuire à la poêle 20 min.",
+"Ajouter les saucisses coupées et dorer 5 min."
+]
+}
+]

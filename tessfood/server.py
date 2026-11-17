@@ -989,7 +989,7 @@ def stock_summary(d):
 def generate_recipes(body):
     key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not key:
-        return {"ok": False, "message": "Ajoute une clé Anthropic dans la configuration de l'extension pour ce bouton."}
+        return recipes_from_book(body)
     with LOCK:
         d = load_db()
         summary = stock_summary(d)
@@ -1030,6 +1030,36 @@ def generate_recipes(body):
         n = import_recipes(d, recs, "claude")
         save_db(d)
     return {"ok": True, "message": f"{n} nouvelles recettes proposées par Claude"}
+
+
+def recipes_from_book(body):
+    """Sans clé : on pioche dans le carnet de recettes intégré celles qui collent le mieux au stock."""
+    try:
+        with open(os.path.join(BASE, "recettes_base.json"), encoding="utf-8") as f:
+            book = json.load(f)
+    except (OSError, ValueError):
+        return {"ok": False, "message": "Carnet de recettes introuvable."}
+    wish = [w for w in norm(body.get("wish") or "").split() if len(w) > 2]
+    with LOCK:
+        d = load_db()
+        known = {norm(r["title"]) for r in d.get("recipes", [])}
+        stock = [{"name": p["name"]} for p in d["products"].values() if stock_qty(d, p["id"]) > 0]
+        scored = []
+        for r in book:
+            if norm(r["title"]) in known:
+                continue
+            need = [i for i in r["ingredients"] if not i.get("optional")]
+            have = sum(1 for i in need if _matches(stock, i["match"]))
+            txt = norm(r["title"] + " " + " ".join(r["tags"]) + " " + " ".join(i["name"] for i in r["ingredients"]))
+            bonus = 3 if wish and all(w in txt for w in wish) else (-5 if wish else 0)
+            scored.append((have / max(1, len(need)) * 10 + bonus, r))
+        scored.sort(key=lambda x: -x[0])
+        picks = [r for _, r in scored[:6]]
+        if not picks:
+            return {"ok": True, "message": "Tu as déjà toutes les recettes du carnet."}
+        n = import_recipes(d, picks, "carnet")
+        save_db(d)
+    return {"ok": True, "message": f"{n} nouvelles idées, choisies selon ton stock"}
 
 
 def import_recipes(d, recs, source="claude"):
