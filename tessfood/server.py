@@ -438,10 +438,16 @@ def open_stock(d, p, source="app"):
     return True
 
 
+def family_qty(d, p):
+    """Stock du produit + des produits identiques sous un autre format (ex. Ricard 70 cl et Ricard 1 L)."""
+    key = norm(p["name"])
+    return sum(stock_qty(d, x["id"]) for x in d["products"].values() if x["id"] == p["id"] or norm(x["name"]) == key)
+
+
 def check_min(d, p):
     """Sous le minimum -> ajouté à la liste de courses (et à Alexa)."""
     mq = float(p.get("min_qty") or 0)
-    q = stock_qty(d, p["id"])
+    q = family_qty(d, p)
     low = q < mq if mq > 0 else q <= 0
     if not low:
         return None
@@ -798,11 +804,11 @@ def shopping_view(d):
     limit = (now() - dt.timedelta(days=45)).isoformat(timespec="seconds")
     for pid, ts in sorted(last_out.items(), key=lambda x: x[1], reverse=True):
         p = d["products"].get(pid)
-        if p and ts >= limit and stock_qty(d, pid) <= 0:
+        if p and ts >= limit and family_qty(d, p) <= 0:
             add(p, "fini le " + ts[8:10] + "/" + ts[5:7], ts)
     for p in d["products"].values():
         mq = float(p.get("min_qty") or 0)
-        if mq > 0 and stock_qty(d, p["id"]) < mq:
+        if mq > 0 and family_qty(d, p) < mq:
             add(p, "sous le minimum", last_out.get(p["id"], ""))
     for x in doubtful(d):
         p = d["products"].get(x["product_id"])
