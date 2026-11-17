@@ -306,7 +306,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <div id="sconf" class="sconf hide"></div>
   <p class="hist" style="margin:0">Passe les produits les uns après les autres devant la caméra (code-barres net, à 15–25 cm, horizontal ou vertical) : chacun est pris en compte tout seul.</p>
   <div id="scanned" class="list"></div>
-  <div class="row"><button class="btn" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
+  <div class="row"><button class="btn light" onclick="switchCam()">🔄 Changer de caméra</button><button class="btn" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
   <label>Sans code-barres : tape le nom<input id="sq" placeholder="ex. tomates, restes de poulet…" autocomplete="off"></label>
   <div id="sres" class="list"></div>
   <div class="row"><button class="btn light" onclick="closeScan()">Fermer</button></div>
@@ -724,8 +724,9 @@ async function decodeCanvas(src, det) {
   return dec(c);
 }
 async function openScan() {
-  dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = ''; SCANNED = []; renderScanned(); BUSY = false; $('#sconf').className = 'sconf hide';
-  const cam = {facingMode: 'environment', width: {ideal: 1920}, height: {ideal: 1080}, advanced: [{focusMode: 'continuous'}]};
+  if (!dScan.open) dScan.showModal(); $('#sq').value = ''; $('#sres').innerHTML = ''; SCANNED = []; renderScanned(); BUSY = false; $('#sconf').className = 'sconf hide';
+  let FACE = 'environment'; try { FACE = localStorage.getItem('tf_cam') || 'environment'; } catch {}
+  const cam = {facingMode: FACE, width: {ideal: 1920}, height: {ideal: 1080}, advanced: [{focusMode: 'continuous'}]};
   try {
     let det = null;
     if ('BarcodeDetector' in window) {
@@ -736,11 +737,11 @@ async function openScan() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('NOAPI');
     let stream = null, lastErr = null;
     // l'iPad / l'iPhone refusent parfois les réglages avancés : on réessaie avec des réglages de plus en plus simples
-    for (const c of [{video: cam, audio: false}, {video: {facingMode: 'environment'}, audio: false}, {video: true, audio: false}]) {
+    for (const c of [{video: cam, audio: false}, {video: {facingMode: FACE}, audio: false}, {video: true, audio: false}]) {
       try { stream = await navigator.mediaDevices.getUserMedia(c); break; } catch (e) { lastErr = e; if (e && e.name === 'NotAllowedError') break; }
     }
     if (!stream) throw lastErr || new Error('caméra');
-    $('#reader').innerHTML = '<video playsinline muted autoplay style="width:100%;display:block"></video><div class="aim"></div>';
+    $('#reader').innerHTML = `<video playsinline muted autoplay style="width:100%;display:block${FACE === 'user' ? ';transform:scaleX(-1)' : ''}"></video><div class="aim"></div>`;
     const v = $('#reader video'); v.srcObject = stream; await v.play();
     NATIVE = {stream, on: true};
     const frame = document.createElement('canvas');
@@ -771,6 +772,13 @@ function camError(e) {
   $('#reader').innerHTML = `<div style="padding:16px;color:#fff;display:grid;gap:10px"><b>${esc(why)}</b>
     <span style="opacity:.8">Utilise le bouton « 📷 Prendre une photo du code » juste en dessous : ça marche partout.</span>
     <small style="opacity:.6">Détail : ${esc(String((e && e.name) || '') + ' ' + String((e && e.message) || n))}</small></div>`;
+}
+function switchCam() {
+  let f = 'environment'; try { f = localStorage.getItem('tf_cam') || 'environment'; } catch {}
+  f = f === 'user' ? 'environment' : 'user';
+  try { localStorage.setItem('tf_cam', f); } catch {}
+  stopNative(); const keep = SCANNED; openScan().then(() => { SCANNED = keep; renderScanned(); });
+  toast(f === 'user' ? 'Caméra avant (selfie) — gardée pour cet appareil' : 'Caméra arrière — gardée pour cet appareil');
 }
 function stopNative() { if (NATIVE) { NATIVE.on = false; NATIVE.stream.getTracks().forEach(t => t.stop()); NATIVE = null; } }
 async function closeScan() { stopNative(); dScan.close(); load(); }
