@@ -511,6 +511,8 @@ def scan(code, source="scanner", default_mode="consume", amount=None):
             fire_event(res)
             return res
 
+        if "://" in code or not re.fullmatch(r"[0-9A-Za-z\-]{4,40}", code):
+            return {"ok": False, "message": "Ce n'est pas un code-barres produit (QR code ou lien) : vise le code-barres."}
         p = product_by_code(d, code)
         created = False
         if not p:
@@ -1368,7 +1370,7 @@ def api(method, path, q, body):
                 add_stock(d, dst, 1, source="camera")
             elif mode == "open":
                 open_stock(d, dst, "camera")
-            elif stock_qty(d, dst["id"]) > 0:
+            elif mode != "none" and stock_qty(d, dst["id"]) > 0:
                 take_stock(d, dst, round(1 / u if u > 1 else 1, 6), "waste" if mode == "waste" else "consume", "camera")
                 check_min(d, dst)
             left = stock_qty(d, dst["id"])
