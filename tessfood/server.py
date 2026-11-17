@@ -1222,8 +1222,58 @@ def scheduler():
         _alexa_kick.wait(20)
 
 
+# ---------------------------------------------------------------- retour de Claude (panier drive)
+REPORT_ENT = "todo.retour_claude"
+
+
+def claude_report(method, path, body):
+    """Claude écrit son compte rendu du panier dans la liste HA « Retour Claude » ; on l'affiche dans Courses."""
+    if not ha_ok():
+        return {"items": []}
+    if method == "GET":
+        try:
+            r = ha("POST", "/api/services/todo/get_items?return_response", {"entity_id": REPORT_ENT, "status": "needs_action"})
+        except Exception as e:
+            return {"items": [], "error": str(e)}
+        resp = (r or {}).get("service_response", r) or {}
+        items = [{"uid": i.get("uid"), "text": i.get("summary", "")} for i in (resp.get(REPORT_ENT) or {}).get("items", [])
+                 if not i.get("summary", "").startswith("TEST")]
+        return {"items": items}
+    if path == "/api/claude/report/clear":
+        uids = body.get("uids") or [i["uid"] for i in claude_report("GET", "", {})["items"]]
+        if uids:
+            ha("POST", "/api/services/todo/remove_item", {"entity_id": REPORT_ENT, "item": uids})
+        return {"ok": True}
+    if path == "/api/claude/report/choose":
+        # Thomas a choisi une des propositions : on la retient pour la prochaine fois
+        article, choice = (body.get("article") or "").strip(), (body.get("choice") or "").strip()
+        with LOCK:
+            d = load_db()
+            p = product_by_name(d, article)
+            if p:
+                p["drive_name"] = choice
+                p["drive_url"] = "https://www.intermarche.com/recherche/" + urllib.parse.quote(choice)
+                save_db(d)
+            ent = d["settings"].get("alexa_entity", "").strip()
+        if ent:  # on précise l'article sur la liste de courses pour que Claude le prenne au prochain passage
+            try:
+                for it in alexa_items(ent):
+                    if norm(it.get("summary", "")) == norm(article) or norm(article) in norm(it.get("summary", "")):
+                        ha("POST", "/api/services/todo/update_item",
+                           {"entity_id": ent, "item": it["uid"], "rename": f"{it['summary']} (réf. drive : {choice})"})
+                        break
+            except Exception as e:
+                log("choix drive :", e)
+        if body.get("uid"):
+            ha("POST", "/api/services/todo/remove_item", {"entity_id": REPORT_ENT, "item": [body["uid"]]})
+        return {"ok": True, "message": f"Retenu : {choice}"}
+    raise LookupError(path)
+
+
 # ---------------------------------------------------------------- API
 def api(method, path, q, body):
+    if path.startswith("/api/claude/report"):
+        return claude_report(method, path, body)
     if method == "POST" and path == "/api/undo":
         return undo()
     if method == "POST" and path in UNDO_LABEL:

@@ -219,6 +219,7 @@ section[id^="t-"]{padding-bottom:110px}
       <button class="btn light" onclick="syncAlexa()">Synchroniser Alexa</button>
       <button class="btn light" onclick="copyClaude()">Copier la demande</button>
     </div>
+    <div id="report"></div>
     <div id="orders"></div>
     <div class="cgrid">
       <div class="col">
@@ -584,7 +585,40 @@ function stockAct(k) {
 
 // ------------------------------------------------ courses
 const SRC = {alexa: '<span class="tag b">Alexa</span>', auto: '<span class="tag g">auto</span>', manual: ''};
+let REPORT = [];
+async function loadReport() {
+  try { REPORT = (await api('claude/report')).items || []; } catch { REPORT = []; }
+  const el = $('#report'); if (!el) return;
+  if (!REPORT.length) { el.innerHTML = ''; return; }
+  const grp = {head: [], ask: [], ok: [], ko: [], promo: [], other: []};
+  for (const r of REPORT) {
+    const t = r.text;
+    if (/^🧾/.test(t)) grp.head.push(r); else if (/^❓/.test(t)) grp.ask.push(r); else if (/^✅/.test(t)) grp.ok.push(r);
+    else if (/^❌/.test(t)) grp.ko.push(r); else if (/^💰/.test(t)) grp.promo.push(r); else grp.other.push(r);
+  }
+  const line = r => `<div class="sub" style="margin:4px 0">${esc(r.text)}</div>`;
+  const ask = r => {
+    const body = r.text.replace(/^❓\s*/, ''), i = body.indexOf(':');
+    const art = i > 0 ? body.slice(0, i).trim() : body, props = (i > 0 ? body.slice(i + 1) : '').split('||').map(x => x.trim()).filter(Boolean);
+    return `<div class="item" style="display:block"><div class="name">❓ ${esc(art)}</div><div class="row" style="flex-wrap:wrap;margin-top:6px">
+      ${props.map(pr => `<button class="btn small light" data-art="${esc(art)}" data-ch="${esc(pr.replace(/\s*[–-]\s*[0-9]+[,.][0-9]+\s*€.*$/, ''))}" data-uid="${esc(r.uid)}" onclick="chooseDrive(this)">${esc(pr)}</button>`).join('')}
+      <button class="btn small light" onclick="act(()=>api('claude/report/clear',{uids:['${esc(r.uid)}']}),'Retiré')">Je m'en occupe</button></div></div>`;
+  };
+  el.innerHTML = `<div class="box"><h2 style="margin-top:0">🛒 Retour de Claude (panier Intermarché)</h2>
+    ${grp.head.map(line).join('')}
+    ${grp.ask.length ? `<h3>À choisir par toi</h3><p class="muted">Touche le bon produit : je le retiens et Claude le prendra au prochain passage.</p>${grp.ask.map(ask).join('')}` : ''}
+    ${grp.ko.length ? `<h3>Introuvables / ruptures</h3>${grp.ko.map(line).join('')}` : ''}
+    ${grp.promo.length ? `<h3>Promos intéressantes</h3>${grp.promo.map(line).join('')}` : ''}
+    ${grp.ok.length ? `<details><summary>${grp.ok.length} article(s) ajouté(s) au panier</summary>${grp.ok.map(line).join('')}</details>` : ''}
+    ${grp.other.map(line).join('')}
+    <div class="row" style="margin-top:8px"><button class="btn light small" onclick="act(()=>api('claude/report/clear',{}),'Compte rendu effacé').then(loadReport)">Effacer ce compte rendu</button></div></div>`;
+}
+async function chooseDrive(b) {
+  await act(() => api('claude/report/choose', {article: b.dataset.art, choice: b.dataset.ch, uid: b.dataset.uid}), 'Retenu pour la prochaine fois');
+  loadReport();
+}
 function renderShop() {
+  loadReport();
   $('#orders').innerHTML = OV.orders.map(o => `<div class="box"><p><b>Commande du ${o.date.split('-').reverse().join('/')}</b> — ${o.items.length} article(s)</p>
     <div class="row"><button class="btn" onclick="openRecv('${o.id}')">Courses récupérées</button><button class="btn light small" onclick="cancelOrder('${o.id}')">Annuler la commande</button></div></div>`).join('');
   $('#shop').innerHTML = OV.shopping.map(i => `<div class="item">
