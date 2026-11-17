@@ -306,7 +306,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <div id="sconf" class="sconf hide"></div>
   <p class="hist" style="margin:0">Passe les produits les uns après les autres devant la caméra (code-barres net, à 15–25 cm, horizontal ou vertical) : chacun est pris en compte tout seul.</p>
   <div id="scanned" class="list"></div>
-  <div class="row"><button class="btn light" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
+  <div class="row"><button class="btn" onclick="photoScan()">📷 Prendre une photo du code</button><input id="photoIn" type="file" accept="image/*" capture="environment" class="hide"></div>
   <label>Sans code-barres : tape le nom<input id="sq" placeholder="ex. tomates, restes de poulet…" autocomplete="off"></label>
   <div id="sres" class="list"></div>
   <div class="row"><button class="btn light" onclick="closeScan()">Fermer</button></div>
@@ -733,7 +733,13 @@ async function openScan() {
         if (f.length) det = new BarcodeDetector({formats: f}); } catch {}
     }
     await getDecoder();
-    const stream = await navigator.mediaDevices.getUserMedia({video: cam, audio: false});
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('NOAPI');
+    let stream = null, lastErr = null;
+    // l'iPad / l'iPhone refusent parfois les réglages avancés : on réessaie avec des réglages de plus en plus simples
+    for (const c of [{video: cam, audio: false}, {video: {facingMode: 'environment'}, audio: false}, {video: true, audio: false}]) {
+      try { stream = await navigator.mediaDevices.getUserMedia(c); break; } catch (e) { lastErr = e; if (e && e.name === 'NotAllowedError') break; }
+    }
+    if (!stream) throw lastErr || new Error('caméra');
     $('#reader').innerHTML = '<video playsinline muted autoplay style="width:100%;display:block"></video><div class="aim"></div>';
     const v = $('#reader video'); v.srcObject = stream; await v.play();
     NATIVE = {stream, on: true};
@@ -750,7 +756,18 @@ async function openScan() {
       setTimeout(loop, det ? 120 : 150);
     };
     loop();
-  } catch (e) { $('#reader').innerHTML = `<p class="hist" style="padding:10px;color:#fff">Caméra indisponible ici (${esc(e.message || e)}). Utilise « Prendre une photo du code ».</p>`; }
+  } catch (e) { camError(e); }
+}
+function camError(e) {
+  const n = (e && (e.name || e.message)) || String(e);
+  let why = 'La caméra n’a pas pu démarrer.';
+  if (n === 'NOAPI') why = 'Cette appli ne donne pas accès à la caméra en direct (fréquent dans l’appli Home Assistant de l’iPad).';
+  else if (n === 'NotAllowedError') why = 'L’accès à la caméra a été refusé. Réglages de l’iPad → Home Assistant (ou Safari) → Caméra → Autoriser.';
+  else if (n === 'NotReadableError') why = 'La caméra est déjà utilisée par une autre appli.';
+  else if (n === 'NotFoundError') why = 'Aucune caméra trouvée.';
+  $('#reader').innerHTML = `<div style="padding:16px;color:#fff;display:grid;gap:10px"><b>${esc(why)}</b>
+    <span style="opacity:.8">Utilise le bouton « 📷 Prendre une photo du code » juste en dessous : ça marche partout.</span>
+    <small style="opacity:.6">Détail : ${esc(n)}</small></div>`;
 }
 function stopNative() { if (NATIVE) { NATIVE.on = false; NATIVE.stream.getTracks().forEach(t => t.stop()); NATIVE = null; } }
 async function closeScan() { stopNative(); dScan.close(); load(); }
