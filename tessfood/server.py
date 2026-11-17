@@ -1245,7 +1245,11 @@ def api(method, path, q, body):
             s = next(x for x in d["stock"] if x["id"] == body["stock_id"])
             for k in ("zone", "expiry", "qty"):
                 if k in body:
-                    s[k] = float(body[k]) if k == "qty" else (body[k] or None)
+                    if k == "qty":
+                        u = units_of(d["products"].get(s["product_id"], {}))
+                        s[k] = round(round(float(body[k]) * u) / u, 6)  # toujours un nombre rond d'unités
+                    else:
+                        s[k] = body[k] or None
             if "expiry" in body:
                 s["est"] = False  # date lue sur l'emballage
             d["stock"] = [x for x in d["stock"] if x["qty"] > 0]

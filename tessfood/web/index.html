@@ -350,7 +350,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
   <h3>Ajouter au stock</h3>
   <label>Produit<input id="aName" list="dl-products" placeholder="ex. Yaourts nature" autocomplete="off"></label>
   <div class="grid2">
-    <label>Quantité<input id="aQty" type="number" min="0.25" step="0.25" value="1"></label>
+    <label>Quantité<input id="aQty" type="number" min="1" step="1" value="1" inputmode="numeric"></label>
     <label>Où<select id="aZone"></select></label>
   </div>
   <label>À consommer avant (optionnel)<input id="aExp" type="date"></label>
@@ -361,7 +361,7 @@ code{background:#eee7da;padding:1px 6px;border-radius:6px;word-break:break-all}
 <dialog id="dEdit"><form class="in" method="dialog" onsubmit="return false">
   <h3 id="eTitle"></h3>
   <div class="grid2">
-    <label>Quantité<input id="eQty" type="number" min="0" step="0.25"></label>
+    <label id="eQtyL">Quantité<input id="eQty" type="number" min="0" step="1" inputmode="numeric"></label>
     <label>Où<select id="eZone"></select></label>
   </div>
   <label>À consommer avant<input id="eExp" type="date"></label>
@@ -547,14 +547,14 @@ function doAdd() {
   const name = $('#aName').value.trim(); if (!name) return toast('Indique un produit');
   const p = PRODUCTS.find(p => p.name.toLowerCase() === name.toLowerCase());
   dAdd.close();
-  act(() => api('stock/add', {product_id: p ? p.id : null, name, qty: +$('#aQty').value || 1, zone: $('#aZone').value, expiry: $('#aExp').value || null}), 'Ajouté au stock');
+  act(() => api('stock/add', {product_id: p ? p.id : null, name, qty: Math.max(1, Math.round(+$('#aQty').value || 1)), zone: $('#aZone').value, expiry: $('#aExp').value || null}), 'Ajouté au stock');
 }
 function openEdit(sid) {
   for (const items of Object.values(OV.zones)) { const x = items.find(i => i.stock_id === sid); if (x) EDIT = x; }
-  $('#eTitle').textContent = EDIT.name; $('#eQty').value = EDIT.qty; $('#eZone').value = Object.keys(OV.zones).find(z => OV.zones[z].includes(EDIT)); $('#eExp').value = EDIT.expiry || '';
+  $('#eTitle').textContent = EDIT.name; const U = EDIT.units || 1; $('#eQty').value = U > 1 ? Math.round(EDIT.qty * U) : Math.round(EDIT.qty); $('#eQtyL').firstChild.textContent = U > 1 ? `Nombre (à l'unité, ${U} par paquet)` : 'Quantité'; $('#eZone').value = Object.keys(OV.zones).find(z => OV.zones[z].includes(EDIT)); $('#eExp').value = EDIT.expiry || '';
   dEdit.showModal();
 }
-function doEdit() { dEdit.close(); act(() => api('stock/edit', {stock_id: EDIT.stock_id, qty: +$('#eQty').value, zone: $('#eZone').value, expiry: $('#eExp').value}), 'Enregistré'); }
+function doEdit() { dEdit.close(); act(() => api('stock/edit', {stock_id: EDIT.stock_id, qty: Math.max(0, Math.round(+$('#eQty').value)) / (EDIT.units || 1), zone: $('#eZone').value, expiry: $('#eExp').value}), 'Enregistré'); }
 function stockAct(k) {
   dEdit.close();
   if (k === 'open') act(() => api('stock/open', {product_id: EDIT.product_id}), 'Marqué ouvert');
