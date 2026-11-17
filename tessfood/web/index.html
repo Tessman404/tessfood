@@ -736,7 +736,7 @@ async function getDecoder() {
 }
 // lit un code-barres sur une image (canvas) : à l'endroit, puis tournée d'un quart de tour
 async function decodeCanvas(src, det) {
-  if (det) { try { const r = await det.detect(src); if (r.length) return r[0].rawValue; } catch {} }
+  if (det) { try { const r = (await det.detect(src)).find(x => !/:\/\//.test(x.rawValue) && x.format !== 'qr_code'); if (r) return r.rawValue; } catch {} }
   const dec = await getDecoder();
   let code = dec(src);
   if (code) return code;
@@ -769,9 +769,18 @@ async function openScan() {
     const loop = async () => {
       if (!NATIVE || !NATIVE.on) return;
       if (v.videoWidth && !BUSY) {
-        const k = Math.min(1, 960 / v.videoWidth);
-        frame.width = Math.round(v.videoWidth * k); frame.height = Math.round(v.videoHeight * k);
-        frame.getContext('2d').drawImage(v, 0, 0, frame.width, frame.height);
+        NATIVE.n = (NATIVE.n || 0) + 1;
+        const W = v.videoWidth, H = v.videoHeight;
+        if (NATIVE.n % 2) {  // image entière
+          const k = Math.min(1, 1280 / W);
+          frame.width = Math.round(W * k); frame.height = Math.round(H * k);
+          frame.getContext('2d').drawImage(v, 0, 0, frame.width, frame.height);
+        } else {  // zoom sur le centre : webcam du Mac, code-barres petit ou un peu flou
+          const cw = W * 0.55, ch = H * 0.55;
+          frame.width = 1280; frame.height = Math.round(1280 * ch / cw);
+          const g = frame.getContext('2d'); g.imageSmoothingQuality = 'high';
+          g.drawImage(v, (W - cw) / 2, (H - ch) / 2, cw, ch, 0, 0, frame.width, frame.height);
+        }
         const code = await decodeCanvas(frame, det);
         if (code) onCode(code);
       }
@@ -804,18 +813,21 @@ function switchCam() {
 function stopNative() { if (NATIVE) { NATIVE.on = false; NATIVE.stream.getTracks().forEach(t => t.stop()); NATIVE = null; } }
 async function closeScan() { stopNative(); dScan.close(); load(); }
 dScan.addEventListener('close', () => { stopNative(); });
-function photoScan() { $('#photoIn').value = ''; $('#photoIn').click(); }
+function photoScan() { stopNative(); $('#photoIn').value = ''; $('#photoIn').click(); }
+function restartLive() { if (dScan.open && !NATIVE) { const keep = SCANNED; openScan().then(() => { SCANNED = keep; renderScanned(); }); } }
 $('#photoIn').onchange = async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
     const img = await createImageBitmap(f);
     const c = document.createElement('canvas'); const k = Math.min(1, 1600 / Math.max(img.width, img.height));
     c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    let det = null; if ('BarcodeDetector' in window) { try { det = new BarcodeDetector(); } catch {} }
+    let det = null; if ('BarcodeDetector' in window) { try { det = new BarcodeDetector({formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128']}); } catch {} }
     const code = await decodeCanvas(c, det);
-    if (code) onCode(code); else toast('Code-barres illisible sur la photo, réessaie de plus près et bien net');
-  } catch { toast('Code-barres illisible sur la photo, réessaie de plus près et bien net'); }
+    if (code) { LAST = {code: '', seen: 0}; BUSY = false; await onCode(code); } else showConf('warn', '⚠️ Code-barres illisible sur la photo', 'Prends-le de plus près, bien net et bien éclairé', null);
+  } catch { showConf('warn', '⚠️ Code-barres illisible sur la photo', 'Prends-le de plus près, bien net et bien éclairé', null); }
+  restartLive();
 };
+$('#photoIn').addEventListener('cancel', restartLive);
 async function onCode(code) {
   const now = Date.now();
   if (code === LAST.code && now - LAST.seen < 1500) { LAST.seen = now; return; }  // toujours devant la caméra : déjà compté
