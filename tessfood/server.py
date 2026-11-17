@@ -707,7 +707,10 @@ def similar_in_stock(d, name):
 
 def finished_from_list(d, item):
     """Un article ajouté à la liste = il n'y en a plus : on met ce produit à 0 dans le stock."""
-    p = match_in_stock(d, item["name"], item.get("product_id"))
+    pid = item.get("product_id")
+    if pid and pid in d["products"] and stock_qty(d, pid) <= 0:
+        return None  # ce produit précis est déjà à 0 : on ne touche pas à un autre format (ex. Ricard 70 cl)
+    p = match_in_stock(d, item["name"], pid)
     if not p:
         return None
     take_stock(d, p, stock_qty(d, p["id"]), "consume", "liste")
@@ -736,6 +739,8 @@ def sync_alexa():
             if uid in by_uid:
                 continue
             match = next((i for i in open_local if not i.get("alexa_uid") and norm(i["name"]) == norm(summary)), None)
+            if not match:  # article créé ici puis coché avant d'être relié à Alexa : ce n'est pas un nouvel ajout
+                match = next((i for i in d["shopping"] if i.get("done") and not i.get("alexa_uid") and norm(i["name"]) == norm(summary)), None)
             if match:
                 match["alexa_uid"] = uid
                 continue
