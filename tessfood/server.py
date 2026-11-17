@@ -392,7 +392,15 @@ def add_move(d, pid, delta, kind, source):
     d["checks"].pop(pid, None) if kind in ("add", "purchase") else None
 
 
-def add_stock(d, p, qty=1, zone=None, expiry=None, source="app", kind="add"):
+def add_stock(d, p, qty=1, zone=None, expiry=None, source="app", kind="add", stock_id=None):
+    line = next((s for s in d["stock"] if s["id"] == stock_id and s["product_id"] == p["id"]), None) if stock_id else None
+    if not line and not expiry and units_of(p) > 1 and abs(qty * units_of(p) - round(qty * units_of(p))) < 1e-6 and qty < 1:
+        # quelques unités (ex. 1 œuf) : on complète la boîte déjà là plutôt que d'en créer une nouvelle
+        line = next((s for s in d["stock"] if s["product_id"] == p["id"] and s["zone"] == (zone or s["zone"])), None)
+    if line:
+        line["qty"] = round(line["qty"] + qty, 6)
+        add_move(d, p["id"], qty, kind, source)
+        return
     exp, est = parse_date(expiry), False
     if not exp and p.get("keep_days"):
         exp, est = today() + dt.timedelta(days=int(p["keep_days"])), True
@@ -1234,7 +1242,7 @@ def api(method, path, q, body):
                 p = product_by_name(d, name) if not body.get("force_new") else None
                 p = p if p and (body.get("match") or norm(p["name"]) == norm(name)) else make_product(d, name, zone=body.get("zone"))
             qty = float(body["units"]) / units_of(p) if body.get("units") else float(body.get("qty") or 1)
-            add_stock(d, p, round(qty, 6), body.get("zone"), body.get("expiry"))
+            add_stock(d, p, round(qty, 6), body.get("zone"), body.get("expiry"), stock_id=body.get("stock_id"))
             save_db(d)
             return {"ok": True, "product_id": p["id"]}
         elif path == "/api/stock/take":

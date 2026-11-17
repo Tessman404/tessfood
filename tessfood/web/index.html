@@ -505,7 +505,7 @@ function itemHtml(x, z) {
       <div class="sub">${esc(x.brand || '')} ${dlc(x.days, x.opened, x.est)}</div></div>
       <button class="ib" title="En sortir un" onclick="take('${x.product_id}',${x.units})">−</button>
       <div class="qty">${qtyHtml(x)}</div>
-      <button class="ib" title="En ajouter un" onclick="plus('${x.product_id}','${z}',${x.units})">+</button></div>`;
+      <button class="ib" title="En ajouter un" onclick="plus('${x.product_id}','${z}',${x.units},'${x.stock_id}')">+</button></div>`;
 }
 function groupHtml(items, z) {
   const groups = {};
@@ -541,7 +541,7 @@ addEventListener('resize', fitBoard);
 $('#q').oninput = renderStock;
 $('#pq').oninput = loadProducts;
 const take = (pid, u) => act(() => api('stock/take', u > 1 ? {product_id: pid, units: 1} : {product_id: pid, qty: 1}), 'Sorti du stock');
-const plus = (pid, z, u) => act(() => api('stock/add', u > 1 ? {product_id: pid, units: 1, zone: z} : {product_id: pid, qty: 1, zone: z}), 'Ajouté');
+const plus = (pid, z, u, sid) => act(() => api('stock/add', u > 1 ? {product_id: pid, units: 1, zone: z, stock_id: sid} : {product_id: pid, qty: 1, zone: z, stock_id: sid}), 'Ajouté');
 
 function openAdd() { $('#aName').value = ''; $('#aQtyL').firstChild.textContent = 'Quantité'; $('#aQty').value = 1; $('#aExp').value = ''; $('#aZone').value = 'frigo'; loadProducts(); dAdd.showModal(); $('#aName').focus(); }
 function findProd(name) {
