@@ -320,6 +320,13 @@ section[id^="t-"]{padding-bottom:110px}
 </div></dialog>
 
 <!-- Choix à la sortie -->
+<dialog id="dLink"><form class="in" method="dialog" onsubmit="return false">
+  <h3>C'est quel produit de ton stock ?</h3>
+  <p class="muted" id="lSub"></p>
+  <input id="lq" placeholder="Chercher (ex. bière, Affligem…)" autocomplete="off">
+  <div class="list" id="lres" style="max-height:50vh;overflow:auto"></div>
+  <div class="row"><button class="btn light" onclick="dLink.close()">Garder comme nouveau produit</button></div>
+</form></dialog>
 <dialog id="dChoice"><form class="in" method="dialog" onsubmit="return false">
   <h3 id="cTitle"></h3>
   <p class="hist" id="cSub"></p>
@@ -857,6 +864,30 @@ function addScanned(r, info) {
   SCANNED = SCANNED.slice(0, 12);
   renderScanned();
 }
+let LINK = null;
+function openLink(id) {
+  LINK = SCANNED.find(s => s.id === id); if (!LINK) return;
+  $('#lSub').textContent = `Scanné : « ${LINK.name} ». Choisis le produit qui correspond, je retiendrai ce code-barres.`;
+  $('#lq').value = ''; renderLink(); dLink.showModal();
+}
+function renderLink() {
+  const t = nrm($('#lq').value.trim()), words = nrm(LINK.name).split(' ').filter(w => w.length > 2);
+  let all = Object.values(OV.zones).flat().filter((x, i, a) => a.findIndex(y => y.product_id === x.product_id) === i && x.product_id !== LINK.pid);
+  if (t) all = all.filter(x => nrm(x.name + ' ' + (x.brand || '') + ' ' + (x.rayon || '')).includes(t));
+  else all.sort((a, b) => words.filter(w => nrm(b.name + ' ' + (b.brand || '')).includes(w)).length - words.filter(w => nrm(a.name + ' ' + (a.brand || '')).includes(w)).length);
+  $('#lres').innerHTML = all.slice(0, 30).map(x => `<div class="item compact">${thumb(x)}<div class="mid"><div class="name">${esc(x.name)}</div><div class="sub">${esc(x.rayon || '')} · ${x.units > 1 ? nb(x.units_left) + ' unité(s)' : nb(x.qty)}</div></div>
+    <button class="btn small" onclick="doLink('${x.product_id}')">C'est ça</button></div>`).join('') || '<div class="empty">Rien en stock à ce nom.</div>';
+}
+$('#lq').oninput = renderLink;
+async function doLink(pid) {
+  const x = LINK; dLink.close();
+  try {
+    const r = await api('scan/relink', {from: x.pid, into: pid, mode: x.mode});
+    Object.assign(x, {pid: r.product_id, name: r.product, units: r.units, left: r.left_text, isNew: false, warn: ''});
+    showConf(x.mode === 'add' ? 'add' : '', `✓ ${r.product}`, `Code-barres retenu · il en reste ${r.left_text}`, x.img);
+    renderScanned(); load && load();
+  } catch (e) { toast('⚠️ ' + e.message); }
+}
 function showConf(cls, title, sub, img) {
   const e = $('#sconf'); e.className = 'sconf ' + (cls || '');
   e.innerHTML = (img ? `<img src="${esc(img)}" alt="">` : '') + `<div>${esc(title)}<small>${esc(sub)}</small></div>`;
@@ -867,6 +898,7 @@ function renderScanned() {
     <div class="mid"><div class="name">${esc(x.name)}</div><div class="sub"><span class="tag ${x.mode === 'add' ? 'g' : 'r'}">${V[x.mode] || x.mode}${x.units > 1 && (x.mode === 'consume' || x.mode === 'waste') ? ' 1 unité' : ''}</span> reste ${esc(x.left)}${x.isNew ? ' · <b>nouveau produit</b>' : ''}${x.warn ? ' · ' + esc(x.warn) : ''}</div></div>
     ${(x.mode === 'consume' || x.mode === 'waste') && x.units > 1 && !x.fixed ? `<button class="btn small light" onclick="fixScan(${x.id},'pack')">Paquet entier</button>` : ''}
     ${(x.mode === 'consume' || x.mode === 'waste') && !x.fixed ? `<button class="btn small light" onclick="fixScan(${x.id},'all')">Plus du tout</button>` : ''}
+    ${x.isNew && !x.fixed ? `<button class="btn small" onclick="openLink(${x.id})">C'est un produit de mon stock</button>` : ''}
     ${!x.fixed ? `<button class="btn small light" onclick="fixScan(${x.id},'undo')">Annuler</button>` : `<span class="tag">${esc(x.fixed)}</span>`}</div>`).join('');
 }
 async function fixScan(id, what) {

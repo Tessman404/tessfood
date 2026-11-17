@@ -81,7 +81,7 @@ def new_id():
 UNDO = []  # instantanés de la base avant chaque modification (en mémoire, 20 derniers)
 UNDO_LABEL = {"/api/recipes/cooked": "recette cuisinée", "/api/suggest/dismiss": "suggestion ignorée", "/api/stock/take": "sortie du stock", "/api/stock/add": "ajout au stock", "/api/stock/open": "produit ouvert",
               "/api/stock/edit": "modification", "/api/product/save": "fiche produit", "/api/product/delete": "suppression du produit",
-              "/api/product/merge": "fusion de produits", "/api/check": "vérification", "/api/shopping/update": "liste de courses",
+              "/api/product/merge": "fusion de produits", "/api/scan/relink": "rattachement du code", "/api/check": "vérification", "/api/shopping/update": "liste de courses",
               "/api/shopping/add": "liste de courses", "/api/order/receive": "rangement des courses", "/api/recipes/cook": "recette cuisinée",
               "/api/recipes/delete": "suppression de recette", "/api/scan": "scan", "/api/order/create": "commande"}
 
@@ -1350,6 +1350,32 @@ def api(method, path, q, body):
                         p[k] = x[k]
             save_db(d)
             return {"ok": True, "new": n_new, "updated": n_upd}
+        elif path == "/api/scan/relink":
+            # un code scanné a créé un nouveau produit, mais c'est en fait un produit déjà en stock (ex. une Affligem)
+            src, dst = d["products"].get(body["from"]), d["products"][body["into"]]
+            mode = body.get("mode", "consume")
+            if src and src["id"] != dst["id"]:
+                dst["barcodes"] = list(dict.fromkeys(dst["barcodes"] + src["barcodes"]))
+                d["stock"] = [x for x in d["stock"] if x["product_id"] != src["id"]]
+                d["moves"] = [x for x in d["moves"] if x.get("product_id") != src["id"]]
+                d["unknown"] = [u for u in d["unknown"] if u["product_id"] != src["id"]]
+                for x in d["shopping"]:
+                    if x.get("product_id") == src["id"]:
+                        x["product_id"] = dst["id"]
+                del d["products"][src["id"]]
+            u = units_of(dst)
+            if mode == "add":
+                add_stock(d, dst, 1, source="camera")
+            elif mode == "open":
+                open_stock(d, dst, "camera")
+            elif stock_qty(d, dst["id"]) > 0:
+                take_stock(d, dst, round(1 / u if u > 1 else 1, 6), "waste" if mode == "waste" else "consume", "camera")
+                check_min(d, dst)
+            left = stock_qty(d, dst["id"])
+            save_db(d)
+            sync_alexa_soon()
+            return {"ok": True, "product": dst["name"], "product_id": dst["id"], "units": u,
+                    "left_text": f"{round(left * u)} unité(s)" if u > 1 else fmt_qty(round(left, 3))}
         elif path == "/api/product/merge":
             # un « produit inconnu » scanné est en fait un produit qui existe déjà
             src, dst = d["products"].pop(body["from"]), d["products"][body["into"]]
