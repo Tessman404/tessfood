@@ -794,9 +794,8 @@ def sync_alexa():
             except Exception as e:
                 log("Alexa coche :", e)
         mark(i["id"], alexa_closed=True)
-    if zeroed_names:
-        notify("Tessfood : stock mis à jour", "Ajouté à la liste, donc plus en stock : " + ", ".join(zeroed_names)
-               + ". Si c'est une erreur, corrige dans Tessfood.", "tessfood-liste")
+    if zeroed_names:  # pas de notification (demande de Thomas) : on le note juste dans le journal
+        log("stock mis à 0 depuis la liste :", ", ".join(zeroed_names))
     return {"ok": True, "message": f"Alexa synchronisée ({len(remote)} article(s) sur la liste)"}
 
 
